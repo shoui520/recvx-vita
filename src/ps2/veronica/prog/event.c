@@ -25,6 +25,10 @@
 #include "../../../ps2/veronica/prog/system.h"
 #include "../../../ps2/veronica/prog/zonzon.h"
 #include "../../../ps2/veronica/prog/main.h"
+#include "../../../ps2/veronica/prog/camera.h"
+#include "../../../ps2/veronica/prog/light.h"
+#include "../../../ps2/veronica/prog/objitm.h"
+#include "../../../ps2/veronica/prog/weapon.h"
 
 #pragma optimization_level 4 // TODO: remove this pragma and compile the file passing the -O4,p flag instead 
 
@@ -659,6 +663,7 @@ unsigned int bhSet()
         
         return 1;
     }
+    return 0; /* fell off the end on the EE */
 }
 
 // 100% matching!
@@ -729,6 +734,7 @@ unsigned int bhCmpB()
     case 5: 
         return v0 != v1; 
     }
+    return 0; /* fell off the end on the EE */
 }
 
 // 100% matching! 
@@ -790,6 +796,7 @@ unsigned int bhCmpW()
     case 5:                                         
         return v0 != v1; 
     }
+    return 0; /* fell off the end on the EE */
 }
 
 // 100% matching!
@@ -2415,6 +2422,7 @@ unsigned int bhDieEventCk()
     case 5: 
         return die_cnt != v2; 
     }
+    return 0; /* fell off the end on the EE */
 }
 
 // 100% matching!
@@ -9703,6 +9711,7 @@ int Player_controll()
         bhScePtr++;
         break;
     }
+    return 0; /* fell off the end on the EE */
 }
 
 // 100% matching!
@@ -9740,8 +9749,9 @@ int Obj_controll()
         bhScePtr++;
         break;
     default:
-        return;
+        return 0;
     }
+    return 0; /* fell off the end on the EE */
 }
 
 // 100% matching!
@@ -9947,6 +9957,7 @@ int Sub_controll()
         bhScePtr++;
         break;
     }
+    return 0; /* fell off the end on the EE */
 }
 
 // 100% matching!
@@ -12707,6 +12718,7 @@ int Common_controll()
             bhScePtr++;
         break;
     }
+    return 0; /* fell off the end on the EE */
 }
 
 // 100% matching! 
@@ -12995,6 +13007,7 @@ int Event_init(BH_SCEWORK* a0, unsigned int evt_id)
     a0->ian[3][0] = 0;
     a0->ian[3][1] = 0;
     a0->ian[3][2] = 0;
+    return 0; /* fell off the end on the EE */
 }
 
 // 100% matching!
@@ -13062,6 +13075,7 @@ int bhEventScheduler2()
             }
         } 
     }
+    return 0; /* fell off the end on the EE */
 }
 
 // 100% matching!
@@ -13199,6 +13213,7 @@ unsigned int bhFlagSet(unsigned char type, unsigned int cnt, unsigned char flag)
         
         return 1;
     }
+    return 0; /* fell off the end on the EE */
 }
 
 // 100% matching!

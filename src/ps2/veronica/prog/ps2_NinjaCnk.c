@@ -9,6 +9,30 @@
 #include "../../../ps2/veronica/prog/ps2_NaTextureFunction.h"
 #include "../../../ps2/veronica/prog/ps2_NaView.h"
 #include "../../../ps2/veronica/prog/ps2_Vu1Strip.h"
+#include "../../../ps2/veronica/prog/ps2_loadtim2.h"
+#ifdef RECVX_VITA
+#include "recvx_platform.h"
+unsigned gs_frame_count(void);
+
+/* draw diagnostics: models reaching the vertex list, VU0-culled ones, polygon chunk types */
+static unsigned dbg_models, dbg_cv51, dbg_culled, dbg_ptype[256], dbg_last;
+
+static void dbg_report(void)
+{
+    unsigned f = gs_frame_count();
+    if (f - dbg_last < 150) return;
+    unsigned nf = f - dbg_last;
+    char buf[256];
+    int n = 0;
+    for (int i = 0; i < 256 && n < 200; i++)
+        if (dbg_ptype[i]) n += snprintf(buf + n, sizeof(buf) - n, " %d:%u", i, dbg_ptype[i] / nf);
+    buf[n] = 0;
+    RECVX_LOG("cnk/frame: models=%u cv51=%u vu0culled=%u ptypes%s", dbg_models / nf, dbg_cv51 / nf, dbg_culled / nf, buf);
+    dbg_last = f;
+    dbg_models = dbg_cv51 = dbg_culled = 0;
+    memset(dbg_ptype, 0, sizeof(dbg_ptype));
+}
+#endif
 
 static VU1_STRIP_BUF* pNaCnkVerBufTop;
 static int iNaCnkVerBufMax;
@@ -103,7 +127,7 @@ CHUNK_HEAD* (*pCnkFuncTbl[76])(CHUNK_HEAD*) =
 	njCnkDefaultShort,
 	njCnkDefaultShort
 };
-void (*pCnkCsVu1FuncTbl[32])(unsigned long, VU1_STRIP_BUF*, unsigned short, unsigned short) = 
+void (*pCnkCsVu1FuncTbl[32])(u_long, VU1_STRIP_BUF*, unsigned short, unsigned short) = 
 {
 	vu1DrawTriangleStripOpaqueDouble,
 	vu1DrawTriangleStripOpaqueDouble,
@@ -744,7 +768,11 @@ int njCnkDrawModelLocal(NJS_CNK_MODEL* pModel)
         {
             modelclipflag = 1;
         }
-        
+#ifdef RECVX_VITA
+        dbg_report();
+        dbg_models++;
+        dbg_cv51 += modelclipflag;
+#endif
         pCnkFuncTbl[pCnk->ucType](pCnk);
     }
     
@@ -752,6 +780,9 @@ int njCnkDrawModelLocal(NJS_CNK_MODEL* pModel)
     
     if ((modelclipflag != 0) && (Vu0ClipFlag != 0)) 
     {
+#ifdef RECVX_VITA
+        dbg_culled++;
+#endif
         return 1;  
     } 
     
@@ -766,6 +797,9 @@ int njCnkDrawModelLocal(NJS_CNK_MODEL* pModel)
     {
         while (pCnk->ucType != 0xFF) 
         {
+#ifdef RECVX_VITA
+            dbg_ptype[pCnk->ucType]++;
+#endif
             pCnk = pCnkFuncTbl[pCnk->ucType](pCnk);
         }
     }
@@ -1348,27 +1382,43 @@ CHUNK_HEAD* njCnkCvVnPs2(CHUNK_HEAD* pCnk)
     v[10][2] = lp[3].fB;
     v[10][3] = lp[3].fI;
     
-    asm volatile 
-    ("
-    .set noreorder
-        move v1, %0
+    { /* translated from EE asm by agent mips2c; original kept below */
+    /* |  */
+    /* |     (" */
+    /* |     .set noreorder */
+    /* |         move v1, %0 */
+    /* |          */
+    /* |         lqc2 vf4,     0(v1)  */
+    /* |         lqc2 vf5,  0x10(v1)  */
+    /* |         lqc2 vf6,  0x20(v1)  */
+    /* |         lqc2 vf7,  0x30(v1)  */
+    /* |         lqc2 vf8,  0x40(v1)  */
+    /* |         lqc2 vf9,  0x50(v1)  */
+    /* |         lqc2 vf10, 0x60(v1)  */
+    /* |         lqc2 vf11, 0x70(v1)  */
+    /* |         lqc2 vf12, 0x80(v1)  */
+    /* |         lqc2 vf13, 0x90(v1)  */
+    /* |         lqc2 vf14, 0xA0(v1)  */
+    /* |     .set reorder */
+    /* |     " : : "r"(v) : "$v1", "memory"  */
+    /* |     );  */
+        ee_gpr r3 = {{0}};
+        __typeof__((v) + 0) op0 = (v);
+        r3.d[0] = EE_CVAR_GET(op0);
+        vu_lqc2(4, ((uintptr_t)(uint32_t)(r3.d[0]) + (0)));
+        vu_lqc2(5, ((uintptr_t)(uint32_t)(r3.d[0]) + (0x10)));
+        vu_lqc2(6, ((uintptr_t)(uint32_t)(r3.d[0]) + (0x20)));
+        vu_lqc2(7, ((uintptr_t)(uint32_t)(r3.d[0]) + (0x30)));
+        vu_lqc2(8, ((uintptr_t)(uint32_t)(r3.d[0]) + (0x40)));
+        vu_lqc2(9, ((uintptr_t)(uint32_t)(r3.d[0]) + (0x50)));
+        vu_lqc2(10, ((uintptr_t)(uint32_t)(r3.d[0]) + (0x60)));
+        vu_lqc2(11, ((uintptr_t)(uint32_t)(r3.d[0]) + (0x70)));
+        vu_lqc2(12, ((uintptr_t)(uint32_t)(r3.d[0]) + (0x80)));
+        vu_lqc2(13, ((uintptr_t)(uint32_t)(r3.d[0]) + (0x90)));
+        vu_lqc2(14, ((uintptr_t)(uint32_t)(r3.d[0]) + (0xA0)));
+    }
         
-        lqc2 vf4,     0(v1) 
-        lqc2 vf5,  0x10(v1) 
-        lqc2 vf6,  0x20(v1) 
-        lqc2 vf7,  0x30(v1) 
-        lqc2 vf8,  0x40(v1) 
-        lqc2 vf9,  0x50(v1) 
-        lqc2 vf10, 0x60(v1) 
-        lqc2 vf11, 0x70(v1) 
-        lqc2 vf12, 0x80(v1) 
-        lqc2 vf13, 0x90(v1) 
-        lqc2 vf14, 0xA0(v1) 
-    .set reorder
-    " : : "r"(v) : "$v1", "memory" 
-    ); 
-        
-    pCnk = (CHUNK_HEAD*)((int)pCnk | 0x30000000);
+    pCnk = (CHUNK_HEAD*)pCnk;
     
     pCnk++;
     
@@ -1382,30 +1432,47 @@ CHUNK_HEAD* njCnkCvVnPs2(CHUNK_HEAD* pCnk)
     
     njSetMatrixCN(pNaMatMatrixStuckPtr);
     
-    asm volatile 
-    ("
-    .set noreorder
-        vcallms  VU0_CALCPOINT_INIT 
-    
-        lqc2     vf4,    0(%2)
-        lqc2     vf5, 0x10(%2)
-        
-        vcallms  VU0_CALCPOINT 
-    
-        qmfc2.i  t0, vf7 
-        qmfc2.i  t1, vf18 
-        qmfc2.i  t2, vf6 
-        
-        sq       t0, 0x10(%1)
-        sq       t1, 0x20(%1)
-        sq       t2, 0x30(%1)
-        
-        qmfc2.ni t3, vf11 
-        
-        mtc1     t3, %0  
-    .set reorder
-    " : "=f"(fog) : "r"(pBuffer), "r"(fpCnk) : "$f20", "$s1", "$s2", "memory" 
-    ); 
+    { /* translated from EE asm by agent mips2c; original kept below */
+    /* |  */
+    /* |     (" */
+    /* |     .set noreorder */
+    /* |         vcallms  VU0_CALCPOINT_INIT  */
+    /* |      */
+    /* |         lqc2     vf4,    0(%2) */
+    /* |         lqc2     vf5, 0x10(%2) */
+    /* |          */
+    /* |         vcallms  VU0_CALCPOINT  */
+    /* |      */
+    /* |         qmfc2.i  t0, vf7  */
+    /* |         qmfc2.i  t1, vf18  */
+    /* |         qmfc2.i  t2, vf6  */
+    /* |          */
+    /* |         sq       t0, 0x10(%1) */
+    /* |         sq       t1, 0x20(%1) */
+    /* |         sq       t2, 0x30(%1) */
+    /* |          */
+    /* |         qmfc2.ni t3, vf11  */
+    /* |          */
+    /* |         mtc1     t3, %0   */
+    /* |     .set reorder */
+    /* |     " : "=f"(fog) : "r"(pBuffer), "r"(fpCnk) : "$f20", "$s1", "$s2", "memory"  */
+    /* |     );  */
+        ee_gpr r8 = {{0}}, r9 = {{0}}, r10 = {{0}}, r11 = {{0}};
+        __typeof__((fpCnk) + 0) op0 = (fpCnk);
+        __typeof__((pBuffer) + 0) op1 = (pBuffer);
+        VU0_CALLMS(VU0_CALCPOINT_INIT);
+        vu_lqc2(4, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op0)) + (0)));
+        vu_lqc2(5, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op0)) + (0x10)));
+        VU0_CALLMS(VU0_CALCPOINT);
+        r8 = vu_qmfc2(7);
+        r9 = vu_qmfc2(18);
+        r10 = vu_qmfc2(6);
+        *(ee_gpr *)((((uintptr_t)(uint32_t)(EE_CVAR_GET(op1)) + (0x10))) & ~(uintptr_t)15) = r8;
+        *(ee_gpr *)((((uintptr_t)(uint32_t)(EE_CVAR_GET(op1)) + (0x20))) & ~(uintptr_t)15) = r9;
+        *(ee_gpr *)((((uintptr_t)(uint32_t)(EE_CVAR_GET(op1)) + (0x30))) & ~(uintptr_t)15) = r10;
+        r11 = vu_qmfc2(11);
+        EE_CVAR_SETF(fog, ee_bitsf((uint32_t)(r11.d[0])));
+    }
         
     ulIndex--;
     
@@ -1415,41 +1482,62 @@ CHUNK_HEAD* njCnkCvVnPs2(CHUNK_HEAD* pCnk)
     
     while (ulIndex != 0)
     {
-        asm volatile 
-        ("
-        .set noreorder
-            lqc2    vf4,    0(%0)
-            lqc2    vf5, 0x10(%0)
-            
-            vcallms VU0_CALCPOINT
-            nop
-        .set reorder
-        " : : "r"(fpCnk) : "$s2", "memory" 
-        ); 
+        { /* translated from EE asm by agent mips2c; original kept below */
+        /* |  */
+        /* |         (" */
+        /* |         .set noreorder */
+        /* |             lqc2    vf4,    0(%0) */
+        /* |             lqc2    vf5, 0x10(%0) */
+        /* |              */
+        /* |             vcallms VU0_CALCPOINT */
+        /* |             nop */
+        /* |         .set reorder */
+        /* |         " : : "r"(fpCnk) : "$s2", "memory"  */
+        /* |         );  */
+            __typeof__((fpCnk) + 0) op0 = (fpCnk);
+            vu_lqc2(4, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op0)) + (0)));
+            vu_lqc2(5, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op0)) + (0x10)));
+            VU0_CALLMS(VU0_CALCPOINT);
+        }
             
         pBuffer[-1].fFog = njCalcFogPowerEx(fog);
         
-        asm volatile 
-        ("
-        .set noreorder
-            qmfc2.i  t0, vf7 
-            qmfc2.i  t1, vf18 
-            qmfc2.i  t2, vf6
-         
-            sq       t0, 0x10(%2)
-            sq       t1, 0x20(%2)
-            sq       t2, 0x30(%2)
-        
-            qmfc2.ni t3, vf11 
-        
-            mtc1     t3, %0
-        
-            cfc2.ni  t0, vi11 
-        
-            sw       t0, 0(%1)
-        .set reorder
-        " : "=f"(fog) : "r"(&Vu0ClipFlag), "r"(pBuffer) : "$f20", "$v0", "$s1", "memory" 
-        ); 
+        { /* translated from EE asm by agent mips2c; original kept below */
+        /* |  */
+        /* |         (" */
+        /* |         .set noreorder */
+        /* |             qmfc2.i  t0, vf7  */
+        /* |             qmfc2.i  t1, vf18  */
+        /* |             qmfc2.i  t2, vf6 */
+        /* |           */
+        /* |             sq       t0, 0x10(%2) */
+        /* |             sq       t1, 0x20(%2) */
+        /* |             sq       t2, 0x30(%2) */
+        /* |          */
+        /* |             qmfc2.ni t3, vf11  */
+        /* |          */
+        /* |             mtc1     t3, %0 */
+        /* |          */
+        /* |             cfc2.ni  t0, vi11  */
+        /* |          */
+        /* |             sw       t0, 0(%1) */
+        /* |         .set reorder */
+        /* |         " : "=f"(fog) : "r"(&Vu0ClipFlag), "r"(pBuffer) : "$f20", "$v0", "$s1", "memory"  */
+        /* |         );  */
+            ee_gpr r8 = {{0}}, r9 = {{0}}, r10 = {{0}}, r11 = {{0}};
+            __typeof__((pBuffer) + 0) op0 = (pBuffer);
+            __typeof__((&Vu0ClipFlag) + 0) op1 = (&Vu0ClipFlag);
+            r8 = vu_qmfc2(7);
+            r9 = vu_qmfc2(18);
+            r10 = vu_qmfc2(6);
+            *(ee_gpr *)((((uintptr_t)(uint32_t)(EE_CVAR_GET(op0)) + (0x10))) & ~(uintptr_t)15) = r8;
+            *(ee_gpr *)((((uintptr_t)(uint32_t)(EE_CVAR_GET(op0)) + (0x20))) & ~(uintptr_t)15) = r9;
+            *(ee_gpr *)((((uintptr_t)(uint32_t)(EE_CVAR_GET(op0)) + (0x30))) & ~(uintptr_t)15) = r10;
+            r11 = vu_qmfc2(11);
+            EE_CVAR_SETF(fog, ee_bitsf((uint32_t)(r11.d[0])));
+            r8.d[0] = (uint64_t)(uint16_t)VI(11);
+            *(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(op1)) + (0))) = (uint32_t)(r8.d[0]);
+        }
 
         ulIndex--;
         
@@ -1460,12 +1548,15 @@ CHUNK_HEAD* njCnkCvVnPs2(CHUNK_HEAD* pCnk)
     
     pBuffer[-1].fFog = njCalcFogPowerEx(fog);
     
-    asm volatile 
-    ("
-    .set noreorder 
-        vcallms VU0_CALCPOINT_END 
-    .set reorder 
-    ");
+    { /* translated from EE asm by agent mips2c; original kept below */
+    /* |  */
+    /* |     (" */
+    /* |     .set noreorder  */
+    /* |         vcallms VU0_CALCPOINT_END  */
+    /* |     .set reorder  */
+    /* |     "); */
+        VU0_CALLMS(VU0_CALCPOINT_END);
+    }
     
     return (CHUNK_HEAD*)fpCnk;
 }
@@ -1726,12 +1817,12 @@ CHUNK_HEAD* njCnkCs(CHUNK_HEAD* pCnk)
     unsigned short usClip;
     unsigned short usColorCalc;
     int ulMode; // not from the debugging symbols
-    unsigned long ulType;           
+    u_long ulType;           
     unsigned short usCnt;
     unsigned short* uspCnk;                                                        
     unsigned short usStrip;                                                      
     unsigned short usColorCalc2; // not from the debugging symbols
-    void (*pVu1Func)(unsigned long, VU1_STRIP_BUF*, unsigned short, unsigned short); 
+    void (*pVu1Func)(u_long, VU1_STRIP_BUF*, unsigned short, unsigned short); 
 
     ulType = 0x12000000000000;
 
@@ -1829,38 +1920,52 @@ int _CVV(float* v0)
 {
     register int ret;
     
-    asm volatile 
-    {
-                      
-        lqc2         vf4, 0(a0)
-        
-        vmulax.xyzw  ACC, vf24, vf4x
-            
-        vmadday.xyzw ACC, vf25, vf4y
-        vmaddaz.xyzw ACC, vf26, vf4z
-            
-        vmaddw.xyzw  vf5, vf27, vf0w
-        
-        vclipw.xyz   vf5, vf5w  
-        vnop
-        vnop
-        vnop
-        vnop
-        vnop
-    
-        cfc2.ni      ret, vi18
-        
-        jr           ra
-        nop
-            
-    } 
+    { /* translated from EE asm by agent mips2c; original kept below */
+    /* |  */
+    /* |     { */
+    /* |                        */
+    /* |         lqc2         vf4, 0(a0) */
+    /* |          */
+    /* |         vmulax.xyzw  ACC, vf24, vf4x */
+    /* |              */
+    /* |         vmadday.xyzw ACC, vf25, vf4y */
+    /* |         vmaddaz.xyzw ACC, vf26, vf4z */
+    /* |              */
+    /* |         vmaddw.xyzw  vf5, vf27, vf0w */
+    /* |          */
+    /* |         vclipw.xyz   vf5, vf5w   */
+    /* |         vnop */
+    /* |         vnop */
+    /* |         vnop */
+    /* |         vnop */
+    /* |         vnop */
+    /* |      */
+    /* |         cfc2.ni      ret, vi18 */
+    /* |          */
+    /* |         jr           ra */
+    /* |         nop */
+    /* |              */
+    /* |     }  */
+        ee_gpr r2 = {{0}}, r4 = {{0}};
+        r4.d[0] = (uint64_t)(uintptr_t)v0;
+        vu_lqc2(4, ((uintptr_t)(uint32_t)(r4.d[0]) + (0)));
+        vu_mul_bc(VACC, VF(24), VF(4)[0], 15);
+        vu_madd_bc(VACC, VF(25), VF(4)[1], 15);
+        vu_madd_bc(VACC, VF(26), VF(4)[2], 15);
+        vu_madd_bc(VF(5), VF(27), VF(0)[3], 15);
+        vu_clip(VF(5), VF(5)[3]);
+        EE_CVAR_SET(ret, (uint64_t)vu_cfc2(18));
+        goto L6_ret;
+        L6_ret:;
+        return (int)(uintptr_t)r2.d[0];
+    }
 }
 
 // 99.22% matching
 CHUNK_HEAD* njCnkCsUvh(CHUNK_HEAD* pCnk)
 {
     unsigned char ucFlag;                                                           
-    unsigned long ulType, ulType2;                                     
+    u_long ulType, ulType2;                                     
     unsigned short* uspCnk;                                                       
     VU1_STRIP_BUF* pV, *pS, *pSorg; // pSorg needs use                                                          
     unsigned short usNext; // needs use                                                    
@@ -1870,12 +1975,12 @@ CHUNK_HEAD* njCnkCsUvh(CHUNK_HEAD* pCnk)
     unsigned short usNum;                                                 
     unsigned short usClip;                                                          
     unsigned short usColorCalc;                                                     
-    void (*pVu1Func)(unsigned long, VU1_STRIP_BUF*, unsigned short, unsigned short); 
+    void (*pVu1Func)(u_long, VU1_STRIP_BUF*, unsigned short, unsigned short); 
     int sExit;                                                                    
-    unsigned long* ulpP;                                                          
-    unsigned long ulVuflag; // needs use                                                  
-    unsigned long vu1func_tag;                                                                                                                 
-    unsigned long* p; // not from DWARF 
+    u_long* ulpP;                                                          
+    u_long ulVuflag; // needs use                                                  
+    u_long vu1func_tag;                                                                                                                 
+    u_long* p; // not from DWARF 
 
     ulType  = SCE_GIF_PRIM(SCE_GS_PRIM_TRISTRIP, 0, /* textured */ SCE_GS_TRUE, /* fog */ SCE_GS_TRUE, 0, 0, 0, 0, 0);
     ulType2 = SCE_GIF_PRIM(SCE_GS_PRIM_TRIFAN,   0, /* textured */ SCE_GS_TRUE, /* fog */ SCE_GS_TRUE, 0, 0, 0, 0, 0);
@@ -2008,7 +2113,7 @@ CHUNK_HEAD* njCnkCsUvh(CHUNK_HEAD* pCnk)
             
             while (TRUE) 
             {
-                ulpP = (Ps2_chunk_buff_flip != 0) ? (void*)0x70002000 : (void*)0x70002F40;
+                ulpP = (Ps2_chunk_buff_flip != 0) ? (void*)SPR_ADDR(0x2000) : (void*)SPR_ADDR(0x2F40);
                 
                 p = (void*)&ulpP[6];
                 
@@ -2034,70 +2139,104 @@ CHUNK_HEAD* njCnkCsUvh(CHUNK_HEAD* pCnk)
                 ulpP[4] = (SCE_GIF_SET_TAG(0, SCE_GS_TRUE, SCE_GS_TRUE, 0, SCE_GIF_PACKED, 3) | ulType) | usMax;
                 ulpP[5] = GIF_REGLIST(SCE_GS_ST, SCE_GS_RGBAQ, SCE_GS_XYZF2);
 
-                asm volatile
-                ("
-                .set noreorder
-                    addiu        %0, zero, 0x3F
-                    
-                    lhu          t0, 0(%1)
-                    
-                    addiu        a0, %1, 6
-                    
-                    sll          t0, t0, 6
-                    
-                    addi         %2, %2, -1
-                    add          t0, %3, t0
-                    
-                    lqc2         vf4, 0x20(t0)
-
-                    vmulax.xyzw  ACC, vf24, vf4x
-                    
-                    vmadday.xyzw ACC, vf25, vf4y
-                    vmaddaz.xyzw ACC, vf26, vf4z
-                    vmaddw.xyzw  vf5, vf27, vf0w
-                    
-                l_002D2AB8:
-                    lhu          t0, 0(a0)
-                    
-                    addiu        a0, a0,  6
-                    addi         %2, %2, -1 
-                    
-                    sll          t0, t0,  6
-                    
-                    beqz         %0, label
-                    
-                    add          t0, %3, t0 
-                    
-                    lqc2         vf4, 0x20(t0) 
-                    
-                    vclipw.xyz   vf5, vf5w                  
-                    
-                    vmulax.xyzw  ACC, vf24, vf4x
-                    
-                    vmadday.xyzw ACC, vf25, vf4y
-                    vmaddaz.xyzw ACC, vf26, vf4z
-                    vmaddw.xyzw  vf5, vf27, vf0w
-                    vnop
-
-                    cfc2         t1, vi18
-                    
-                    bnez         %2, l_002D2AB8
-                    
-                    and          %0, %0, t1
-                    
-                    vclipw.xyz   vf5, vf5w
-                    vnop
-                    vnop
-                    vnop
-                    vnop
-                    vnop
-
-                    cfc2         t1, vi18
-                    
-                    and          %0, %0, t1
-                .set reorder
-                " : "r"(coflag) : "r"(uspCnk), "r"(usMax), "m"(pNaCnkVerBufTop) : "memory"
-                );
+                { /* translated from EE asm by agent mips2c; original kept below */
+                /* |  */
+                /* |                 (" */
+                /* |                 .set noreorder */
+                /* |                     addiu        %0, zero, 0x3F */
+                /* |                      */
+                /* |                     lhu          t0, 0(%1) */
+                /* |                      */
+                /* |                     addiu        a0, %1, 6 */
+                /* |                      */
+                /* |                     sll          t0, t0, 6 */
+                /* |                      */
+                /* |                     addi         %2, %2, -1 */
+                /* |                     add          t0, %3, t0 */
+                /* |                      */
+                /* |                     lqc2         vf4, 0x20(t0) */
+                /* |  */
+                /* |                     vmulax.xyzw  ACC, vf24, vf4x */
+                /* |                      */
+                /* |                     vmadday.xyzw ACC, vf25, vf4y */
+                /* |                     vmaddaz.xyzw ACC, vf26, vf4z */
+                /* |                     vmaddw.xyzw  vf5, vf27, vf0w */
+                /* |                      */
+                /* |                 l_002D2AB8: */
+                /* |                     lhu          t0, 0(a0) */
+                /* |                      */
+                /* |                     addiu        a0, a0,  6 */
+                /* |                     addi         %2, %2, -1  */
+                /* |                      */
+                /* |                     sll          t0, t0,  6 */
+                /* |                      */
+                /* |                     beqz         %0, label */
+                /* |                      */
+                /* |                     add          t0, %3, t0  */
+                /* |                      */
+                /* |                     lqc2         vf4, 0x20(t0)  */
+                /* |                      */
+                /* |                     vclipw.xyz   vf5, vf5w                   */
+                /* |                      */
+                /* |                     vmulax.xyzw  ACC, vf24, vf4x */
+                /* |                      */
+                /* |                     vmadday.xyzw ACC, vf25, vf4y */
+                /* |                     vmaddaz.xyzw ACC, vf26, vf4z */
+                /* |                     vmaddw.xyzw  vf5, vf27, vf0w */
+                /* |                     vnop */
+                /* |  */
+                /* |                     cfc2         t1, vi18 */
+                /* |                      */
+                /* |                     bnez         %2, l_002D2AB8 */
+                /* |                      */
+                /* |                     and          %0, %0, t1 */
+                /* |                      */
+                /* |                     vclipw.xyz   vf5, vf5w */
+                /* |                     vnop */
+                /* |                     vnop */
+                /* |                     vnop */
+                /* |                     vnop */
+                /* |                     vnop */
+                /* |  */
+                /* |                     cfc2         t1, vi18 */
+                /* |                      */
+                /* |                     and          %0, %0, t1 */
+                /* |                 .set reorder */
+                /* |                 " : "r"(coflag) : "r"(uspCnk), "r"(usMax), "m"(pNaCnkVerBufTop) : "memory" */
+                /* |                 ); */
+                    ee_gpr r4 = {{0}}, r8 = {{0}}, r9 = {{0}};
+                    __typeof__((uspCnk) + 0) op0 = (uspCnk);
+                    __typeof__((usMax) + 0) op1 = (usMax);
+                    __typeof__((pNaCnkVerBufTop) + 0) op2 = (pNaCnkVerBufTop);
+                    EE_CVAR_SET(coflag, EE_SEXT32((uint32_t)(0) + (uint32_t)(0x3F)));
+                    r8.d[0] = (uint64_t)*(uint16_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(op0)) + (0)));
+                    r4.d[0] = EE_SEXT32((uint32_t)(EE_CVAR_GET(op0)) + (uint32_t)(6));
+                    r8.d[0] = EE_SEXT32((uint32_t)(r8.d[0]) << 6);
+                    EE_CVAR_SET(op1, EE_SEXT32((uint32_t)(EE_CVAR_GET(op1)) + (uint32_t)(-1)));
+                    r8.d[0] = EE_SEXT32((uint32_t)(EE_CVAR_GET(op2)) + (uint32_t)(r8.d[0]));
+                    vu_lqc2(4, ((uintptr_t)(uint32_t)(r8.d[0]) + (0x20)));
+                    vu_mul_bc(VACC, VF(24), VF(4)[0], 15);
+                    vu_madd_bc(VACC, VF(25), VF(4)[1], 15);
+                    vu_madd_bc(VACC, VF(26), VF(4)[2], 15);
+                    vu_madd_bc(VF(5), VF(27), VF(0)[3], 15);
+                    L_njCnkCsUvh_l_002D2AB8:;
+                    r8.d[0] = (uint64_t)*(uint16_t *)(((uintptr_t)(uint32_t)(r4.d[0]) + (0)));
+                    r4.d[0] = EE_SEXT32((uint32_t)(r4.d[0]) + (uint32_t)(6));
+                    EE_CVAR_SET(op1, EE_SEXT32((uint32_t)(EE_CVAR_GET(op1)) + (uint32_t)(-1)));
+                    r8.d[0] = EE_SEXT32((uint32_t)(r8.d[0]) << 6);
+                    { int c_ = ((int64_t)(EE_CVAR_GET(coflag)) == 0); r8.d[0] = EE_SEXT32((uint32_t)(EE_CVAR_GET(op2)) + (uint32_t)(r8.d[0])); if (c_) goto label; }
+                    vu_lqc2(4, ((uintptr_t)(uint32_t)(r8.d[0]) + (0x20)));
+                    vu_clip(VF(5), VF(5)[3]);
+                    vu_mul_bc(VACC, VF(24), VF(4)[0], 15);
+                    vu_madd_bc(VACC, VF(25), VF(4)[1], 15);
+                    vu_madd_bc(VACC, VF(26), VF(4)[2], 15);
+                    vu_madd_bc(VF(5), VF(27), VF(0)[3], 15);
+                    r9.d[0] = (uint64_t)vu_cfc2(18);
+                    { int c_ = ((int64_t)(EE_CVAR_GET(op1)) != 0); EE_CVAR_SET(coflag, (EE_CVAR_GET(coflag)) & r9.d[0]); if (c_) goto L_njCnkCsUvh_l_002D2AB8; }
+                    vu_clip(VF(5), VF(5)[3]);
+                    r9.d[0] = (uint64_t)vu_cfc2(18);
+                    EE_CVAR_SET(coflag, (EE_CVAR_GET(coflag)) & r9.d[0]);
+                }
                     
                 if (coflag != 0)
                 {
@@ -2109,89 +2248,141 @@ CHUNK_HEAD* njCnkCsUvh(CHUNK_HEAD* pCnk)
                 {
                     float zbuff[4] = { -Ps2_zbuff_b, 0.0009775171f, -Ps2_zbuff_a, 65534.0f }; 
                     
-                    asm volatile
-                    ("
-                    .set noreorder
-                        lqc2 vf8, 0(%0)
-                    .set reorder
-                    " : : "r"(zbuff) : "v1", "memory"
-                    );  
+                    { /* translated from EE asm by agent mips2c; original kept below */
+                    /* |  */
+                    /* |                     (" */
+                    /* |                     .set noreorder */
+                    /* |                         lqc2 vf8, 0(%0) */
+                    /* |                     .set reorder */
+                    /* |                     " : : "r"(zbuff) : "v1", "memory" */
+                    /* |                     );   */
+                        __typeof__((zbuff) + 0) op0 = (zbuff);
+                        vu_lqc2(8, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op0)) + (0)));
+                    }
    
-                    asm volatile
-                    ("
-                    .set noreorder
-                        andi      %3, %3, 0xFFFF
-                        
-                        move      t3, %0
-                        move      t4, %1
-                    
-                        ldl       t0, 0x7(t4)
-                        ldr       t0,   0(t4)
-                        
-                        addiu     t4, t4, 6
-                    
-                        andi      t1, t0, 0xFFFF
-                        
-                        dsrl      t0, t0, 16
-                        sll       t1, t1, 6
-                        
-                        add       t2, %2, t1
-                        
-                    l_002D2B38: 
-                        lqc2      vf4,    0(t2)
-                        lqc2      vf5, 0x10(t2)
-                        lqc2      vf6, 0x20(t2)
-                        lqc2      vf7, 0x30(t2)
-
-                        pextlh    t0, zero, t0
-                    
-                        qmtc2     t0, vf4
-                    
-                        vitof0.xy vf4, vf4
-                        
-                        vmove.z   vf4, vf7
-                        
-                        vmuly.xy  vf4, vf4, vf8y
-                        
-                        vmove.w   vf5, vf7
-                        
-                        vmulax.z  ACC, vf7, vf8x
-                        
-                        vmaddw.z  vf7, vf8, vf0w
-                        
-                        ldl       t0, 0x7(t4)
-                        ldr       t0,   0(t4)
-                        
-                        addiu     t4, t4, 6
-                        
-                        vmax.z    vf7, vf7, vf0
-                        
-                        andi      t1, t0, 0xFFFF
-                    
-                        dsrl      t0, t0, 16
-                        sll       t1, t1, 6
-                        
-                        add       t2, %2, t1
-                        
-                        vminiw.z  vf7, vf7, vf8w
-                        
-                        vmove.w   vf7, vf6
-                        
-                        addi      %3, %3, -1
-                        
-                        sqc2      vf4,    0(t3)
-                        sqc2      vf5, 0x10(t3)
-                        sqc2      vf6, 0x20(t3)
-                        sqc2      vf7, 0x30(t3)
-                        
-                        sw        %4, VU1_STRIP_BUF.fPad1(%0)
-                        
-                        bnez      %3, l_002D2B38 
-                        
-                        addiu     t3, t3, 64
-                    .set reorder
-                    " : : "r"(pS), "r"(uspCnk), "m"(pNaCnkVerBufTop), "r"(usMax), "r"(usColorCalc) : "t0", "t1", "t2", "memory"
-                    );
+                    { /* translated from EE asm by agent mips2c; original kept below */
+                    /* |  */
+                    /* |                     (" */
+                    /* |                     .set noreorder */
+                    /* |                         andi      %3, %3, 0xFFFF */
+                    /* |                          */
+                    /* |                         move      t3, %0 */
+                    /* |                         move      t4, %1 */
+                    /* |                      */
+                    /* |                         ldl       t0, 0x7(t4) */
+                    /* |                         ldr       t0,   0(t4) */
+                    /* |                          */
+                    /* |                         addiu     t4, t4, 6 */
+                    /* |                      */
+                    /* |                         andi      t1, t0, 0xFFFF */
+                    /* |                          */
+                    /* |                         dsrl      t0, t0, 16 */
+                    /* |                         sll       t1, t1, 6 */
+                    /* |                          */
+                    /* |                         add       t2, %2, t1 */
+                    /* |                          */
+                    /* |                     l_002D2B38:  */
+                    /* |                         lqc2      vf4,    0(t2) */
+                    /* |                         lqc2      vf5, 0x10(t2) */
+                    /* |                         lqc2      vf6, 0x20(t2) */
+                    /* |                         lqc2      vf7, 0x30(t2) */
+                    /* |  */
+                    /* |                         pextlh    t0, zero, t0 */
+                    /* |                      */
+                    /* |                         qmtc2     t0, vf4 */
+                    /* |                      */
+                    /* |                         vitof0.xy vf4, vf4 */
+                    /* |                          */
+                    /* |                         vmove.z   vf4, vf7 */
+                    /* |                          */
+                    /* |                         vmuly.xy  vf4, vf4, vf8y */
+                    /* |                          */
+                    /* |                         vmove.w   vf5, vf7 */
+                    /* |                          */
+                    /* |                         vmulax.z  ACC, vf7, vf8x */
+                    /* |                          */
+                    /* |                         vmaddw.z  vf7, vf8, vf0w */
+                    /* |                          */
+                    /* |                         ldl       t0, 0x7(t4) */
+                    /* |                         ldr       t0,   0(t4) */
+                    /* |                          */
+                    /* |                         addiu     t4, t4, 6 */
+                    /* |                          */
+                    /* |                         vmax.z    vf7, vf7, vf0 */
+                    /* |                          */
+                    /* |                         andi      t1, t0, 0xFFFF */
+                    /* |                      */
+                    /* |                         dsrl      t0, t0, 16 */
+                    /* |                         sll       t1, t1, 6 */
+                    /* |                          */
+                    /* |                         add       t2, %2, t1 */
+                    /* |                          */
+                    /* |                         vminiw.z  vf7, vf7, vf8w */
+                    /* |                          */
+                    /* |                         vmove.w   vf7, vf6 */
+                    /* |                          */
+                    /* |                         addi      %3, %3, -1 */
+                    /* |                          */
+                    /* |                         sqc2      vf4,    0(t3) */
+                    /* |                         sqc2      vf5, 0x10(t3) */
+                    /* |                         sqc2      vf6, 0x20(t3) */
+                    /* |                         sqc2      vf7, 0x30(t3) */
+                    /* |                          */
+                    /* |                         sw        %4, VU1_STRIP_BUF.fPad1(%0) */
+                    /* |                          */
+                    /* |                         bnez      %3, l_002D2B38  */
+                    /* |                          */
+                    /* |                         addiu     t3, t3, 64 */
+                    /* |                     .set reorder */
+                    /* |                     " : : "r"(pS), "r"(uspCnk), "m"(pNaCnkVerBufTop), "r"(usMax), "r"(usColorCalc) : "t0", "t1", "t2", "memory" */
+                    /* |                     ); */
+                        ee_gpr r8 = {{0}}, r9 = {{0}}, r10 = {{0}}, r11 = {{0}}, r12 = {{0}};
+                        __typeof__((usMax) + 0) op0 = (usMax);
+                        __typeof__((pS) + 0) op1 = (pS);
+                        __typeof__((uspCnk) + 0) op2 = (uspCnk);
+                        __typeof__((pNaCnkVerBufTop) + 0) op3 = (pNaCnkVerBufTop);
+                        __typeof__((usColorCalc) + 0) op4 = (usColorCalc);
+                        EE_CVAR_SET(op0, (EE_CVAR_GET(op0)) & (uint64_t)(uint16_t)(0xFFFF));
+                        r11.d[0] = EE_CVAR_GET(op1);
+                        r12.d[0] = EE_CVAR_GET(op2);
+                        r8.d[0] = ee_ld64(((uintptr_t)(uint32_t)(r12.d[0]) + (0x7)) - 7);
+                        r8.d[0] = ee_ld64(((uintptr_t)(uint32_t)(r12.d[0]) + (0)));
+                        r12.d[0] = EE_SEXT32((uint32_t)(r12.d[0]) + (uint32_t)(6));
+                        r9.d[0] = (r8.d[0]) & (uint64_t)(uint16_t)(0xFFFF);
+                        r8.d[0] = r8.d[0] >> (16);
+                        r9.d[0] = EE_SEXT32((uint32_t)(r9.d[0]) << 6);
+                        r10.d[0] = EE_SEXT32((uint32_t)(EE_CVAR_GET(op3)) + (uint32_t)(r9.d[0]));
+                        L_njCnkCsUvh_l_002D2B38:;
+                        vu_lqc2(4, ((uintptr_t)(uint32_t)(r10.d[0]) + (0)));
+                        vu_lqc2(5, ((uintptr_t)(uint32_t)(r10.d[0]) + (0x10)));
+                        vu_lqc2(6, ((uintptr_t)(uint32_t)(r10.d[0]) + (0x20)));
+                        vu_lqc2(7, ((uintptr_t)(uint32_t)(r10.d[0]) + (0x30)));
+                        r8 = ee_pextlh((ee_gpr){{0}}, r8);
+                        vu_qmtc2(4, r8);
+                        vu_itof(VF(4), VF(4), 12, (1.0f / 1.0f));
+                        vu_move(VF(4), VF(7), 2);
+                        vu_mul_bc(VF(4), VF(4), VF(8)[1], 12);
+                        vu_move(VF(5), VF(7), 1);
+                        vu_mul_bc(VACC, VF(7), VF(8)[0], 2);
+                        vu_madd_bc(VF(7), VF(8), VF(0)[3], 2);
+                        r8.d[0] = ee_ld64(((uintptr_t)(uint32_t)(r12.d[0]) + (0x7)) - 7);
+                        r8.d[0] = ee_ld64(((uintptr_t)(uint32_t)(r12.d[0]) + (0)));
+                        r12.d[0] = EE_SEXT32((uint32_t)(r12.d[0]) + (uint32_t)(6));
+                        vu_max(VF(7), VF(7), VF(0), 2);
+                        r9.d[0] = (r8.d[0]) & (uint64_t)(uint16_t)(0xFFFF);
+                        r8.d[0] = r8.d[0] >> (16);
+                        r9.d[0] = EE_SEXT32((uint32_t)(r9.d[0]) << 6);
+                        r10.d[0] = EE_SEXT32((uint32_t)(EE_CVAR_GET(op3)) + (uint32_t)(r9.d[0]));
+                        vu_mini_bc(VF(7), VF(7), VF(8)[3], 2);
+                        vu_move(VF(7), VF(6), 1);
+                        EE_CVAR_SET(op0, EE_SEXT32((uint32_t)(EE_CVAR_GET(op0)) + (uint32_t)(-1)));
+                        vu_sqc2(4, ((uintptr_t)(uint32_t)(r11.d[0]) + (0)));
+                        vu_sqc2(5, ((uintptr_t)(uint32_t)(r11.d[0]) + (0x10)));
+                        vu_sqc2(6, ((uintptr_t)(uint32_t)(r11.d[0]) + (0x20)));
+                        vu_sqc2(7, ((uintptr_t)(uint32_t)(r11.d[0]) + (0x30)));
+                        *(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(op1)) + ((int)offsetof(VU1_STRIP_BUF, fPad1)))) = (uint32_t)(EE_CVAR_GET(op4));
+                        { int c_ = ((int64_t)(EE_CVAR_GET(op0)) != 0); r11.d[0] = EE_SEXT32((uint32_t)(r11.d[0]) + (uint32_t)(64)); if (c_) goto L_njCnkCsUvh_l_002D2B38; }
+                    }
                 
                     uspCnk += usMax * 3;
                     
@@ -2200,7 +2391,7 @@ CHUNK_HEAD* njCnkCsUvh(CHUNK_HEAD* pCnk)
                     p[0] = 0;
                     p[1] = vu1func_tag;
                     
-                    sceDmaSend((sceDmaChan*)D1_CHCR, (void*)((unsigned int)ulpP | 0x80000000));
+                    sceDmaSend((sceDmaChan*)D1_CHCR, (void*)ulpP);
                     
                     Ps2_chunk_buff_flip ^= 1;
                 }
@@ -2241,7 +2432,7 @@ CHUNK_HEAD* njCnkCsUvh(CHUNK_HEAD* pCnk)
 
                 cflag = 0x3F;
                 
-                ulpP = (unsigned long*)pS;
+                ulpP = (u_long*)pS;
                 
                 if ((usMax = usNum) > 60) 
                 {
@@ -2292,7 +2483,7 @@ CHUNK_HEAD* njCnkCsUvh(CHUNK_HEAD* pCnk)
 CHUNK_HEAD* njCnkCsUvn(CHUNK_HEAD* pCnk)
 {
     unsigned char ucFlag;                                                           
-    unsigned long ulType, ulType2;                                     
+    u_long ulType, ulType2;                                     
     unsigned short* uspCnk;                                                       
     VU1_STRIP_BUF* pV, *pS, *pSorg; // pSorg needs use                                                             
     unsigned short usNext; // needs use                                                    
@@ -2302,12 +2493,12 @@ CHUNK_HEAD* njCnkCsUvn(CHUNK_HEAD* pCnk)
     unsigned short usNum;                                                 
     unsigned short usClip;                                                          
     unsigned short usColorCalc;                                                     
-    void (*pVu1Func)(unsigned long, VU1_STRIP_BUF*, unsigned short, unsigned short); 
+    void (*pVu1Func)(u_long, VU1_STRIP_BUF*, unsigned short, unsigned short); 
     int sExit;                                                                    
-    unsigned long* ulpP;                                                          
-    unsigned long ulVuflag; // needs use                                                        
-    unsigned long vu1func_tag;                                                                                                                 
-    unsigned long* p; // not from DWARF 
+    u_long* ulpP;                                                          
+    u_long ulVuflag; // needs use                                                        
+    u_long vu1func_tag;                                                                                                                 
+    u_long* p; // not from DWARF 
 
     ulType  = SCE_GIF_PRIM(SCE_GS_PRIM_TRISTRIP, 0, /* textured */ SCE_GS_TRUE, /* fog */ SCE_GS_TRUE, 0, 0, 0, 0, 0);
     ulType2 = SCE_GIF_PRIM(SCE_GS_PRIM_TRIFAN,   0, /* textured */ SCE_GS_TRUE, /* fog */ SCE_GS_TRUE, 0, 0, 0, 0, 0);
@@ -2440,7 +2631,7 @@ CHUNK_HEAD* njCnkCsUvn(CHUNK_HEAD* pCnk)
             
             while (TRUE) 
             {
-                ulpP = (Ps2_chunk_buff_flip != 0) ? (void*)0x70002000 : (void*)0x70002F40;
+                ulpP = (Ps2_chunk_buff_flip != 0) ? (void*)SPR_ADDR(0x2000) : (void*)SPR_ADDR(0x2F40);
                 
                 p = (void*)&ulpP[6];
                 
@@ -2466,70 +2657,104 @@ CHUNK_HEAD* njCnkCsUvn(CHUNK_HEAD* pCnk)
                 ulpP[4] = (SCE_GIF_SET_TAG(0, SCE_GS_TRUE, SCE_GS_TRUE, 0, SCE_GIF_PACKED, 3) | ulType) | usMax;
                 ulpP[5] = GIF_REGLIST(SCE_GS_ST, SCE_GS_RGBAQ, SCE_GS_XYZF2);
 
-                asm volatile
-                ("
-                .set noreorder
-                    addiu        %0, zero, 0x3F
-                    
-                    lhu          t0, 0(%1)
-                    
-                    addiu        a0, %1, 6
-                    
-                    sll          t0, t0, 6
-                    
-                    addi         %2, %2, -1
-                    add          t0, %3, t0
-                    
-                    lqc2         vf4, 0x20(t0)
-
-                    vmulax.xyzw  ACC, vf24, vf4x
-                    
-                    vmadday.xyzw ACC, vf25, vf4y
-                    vmaddaz.xyzw ACC, vf26, vf4z
-                    vmaddw.xyzw  vf5, vf27, vf0w
-                    
-                l_002D2AB8:
-                    lhu          t0, 0(a0)
-                    
-                    addiu        a0, a0,  6
-                    addi         %2, %2, -1 
-                    
-                    sll          t0, t0,  6
-                    
-                    beqz         %0, label
-                    
-                    add          t0, %3, t0 
-                    
-                    lqc2         vf4, 0x20(t0) 
-                    
-                    vclipw.xyz   vf5, vf5w                  
-                    
-                    vmulax.xyzw  ACC, vf24, vf4x
-                    
-                    vmadday.xyzw ACC, vf25, vf4y
-                    vmaddaz.xyzw ACC, vf26, vf4z
-                    vmaddw.xyzw  vf5, vf27, vf0w
-                    vnop
-
-                    cfc2         t1, vi18
-                    
-                    bnez         %2, l_002D2AB8
-                    
-                    and          %0, %0, t1
-                    
-                    vclipw.xyz   vf5, vf5w
-                    vnop
-                    vnop
-                    vnop
-                    vnop
-                    vnop
-
-                    cfc2         t1, vi18
-                    
-                    and          %0, %0, t1
-                .set reorder
-                " : "r"(coflag) : "r"(uspCnk), "r"(usMax), "m"(pNaCnkVerBufTop) : "memory"
-                );
+                { /* translated from EE asm by agent mips2c; original kept below */
+                /* |  */
+                /* |                 (" */
+                /* |                 .set noreorder */
+                /* |                     addiu        %0, zero, 0x3F */
+                /* |                      */
+                /* |                     lhu          t0, 0(%1) */
+                /* |                      */
+                /* |                     addiu        a0, %1, 6 */
+                /* |                      */
+                /* |                     sll          t0, t0, 6 */
+                /* |                      */
+                /* |                     addi         %2, %2, -1 */
+                /* |                     add          t0, %3, t0 */
+                /* |                      */
+                /* |                     lqc2         vf4, 0x20(t0) */
+                /* |  */
+                /* |                     vmulax.xyzw  ACC, vf24, vf4x */
+                /* |                      */
+                /* |                     vmadday.xyzw ACC, vf25, vf4y */
+                /* |                     vmaddaz.xyzw ACC, vf26, vf4z */
+                /* |                     vmaddw.xyzw  vf5, vf27, vf0w */
+                /* |                      */
+                /* |                 l_002D2AB8: */
+                /* |                     lhu          t0, 0(a0) */
+                /* |                      */
+                /* |                     addiu        a0, a0,  6 */
+                /* |                     addi         %2, %2, -1  */
+                /* |                      */
+                /* |                     sll          t0, t0,  6 */
+                /* |                      */
+                /* |                     beqz         %0, label */
+                /* |                      */
+                /* |                     add          t0, %3, t0  */
+                /* |                      */
+                /* |                     lqc2         vf4, 0x20(t0)  */
+                /* |                      */
+                /* |                     vclipw.xyz   vf5, vf5w                   */
+                /* |                      */
+                /* |                     vmulax.xyzw  ACC, vf24, vf4x */
+                /* |                      */
+                /* |                     vmadday.xyzw ACC, vf25, vf4y */
+                /* |                     vmaddaz.xyzw ACC, vf26, vf4z */
+                /* |                     vmaddw.xyzw  vf5, vf27, vf0w */
+                /* |                     vnop */
+                /* |  */
+                /* |                     cfc2         t1, vi18 */
+                /* |                      */
+                /* |                     bnez         %2, l_002D2AB8 */
+                /* |                      */
+                /* |                     and          %0, %0, t1 */
+                /* |                      */
+                /* |                     vclipw.xyz   vf5, vf5w */
+                /* |                     vnop */
+                /* |                     vnop */
+                /* |                     vnop */
+                /* |                     vnop */
+                /* |                     vnop */
+                /* |  */
+                /* |                     cfc2         t1, vi18 */
+                /* |                      */
+                /* |                     and          %0, %0, t1 */
+                /* |                 .set reorder */
+                /* |                 " : "r"(coflag) : "r"(uspCnk), "r"(usMax), "m"(pNaCnkVerBufTop) : "memory" */
+                /* |                 ); */
+                    ee_gpr r4 = {{0}}, r8 = {{0}}, r9 = {{0}};
+                    __typeof__((uspCnk) + 0) op0 = (uspCnk);
+                    __typeof__((usMax) + 0) op1 = (usMax);
+                    __typeof__((pNaCnkVerBufTop) + 0) op2 = (pNaCnkVerBufTop);
+                    EE_CVAR_SET(coflag, EE_SEXT32((uint32_t)(0) + (uint32_t)(0x3F)));
+                    r8.d[0] = (uint64_t)*(uint16_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(op0)) + (0)));
+                    r4.d[0] = EE_SEXT32((uint32_t)(EE_CVAR_GET(op0)) + (uint32_t)(6));
+                    r8.d[0] = EE_SEXT32((uint32_t)(r8.d[0]) << 6);
+                    EE_CVAR_SET(op1, EE_SEXT32((uint32_t)(EE_CVAR_GET(op1)) + (uint32_t)(-1)));
+                    r8.d[0] = EE_SEXT32((uint32_t)(EE_CVAR_GET(op2)) + (uint32_t)(r8.d[0]));
+                    vu_lqc2(4, ((uintptr_t)(uint32_t)(r8.d[0]) + (0x20)));
+                    vu_mul_bc(VACC, VF(24), VF(4)[0], 15);
+                    vu_madd_bc(VACC, VF(25), VF(4)[1], 15);
+                    vu_madd_bc(VACC, VF(26), VF(4)[2], 15);
+                    vu_madd_bc(VF(5), VF(27), VF(0)[3], 15);
+                    L_njCnkCsUvn_l_002D2AB8:;
+                    r8.d[0] = (uint64_t)*(uint16_t *)(((uintptr_t)(uint32_t)(r4.d[0]) + (0)));
+                    r4.d[0] = EE_SEXT32((uint32_t)(r4.d[0]) + (uint32_t)(6));
+                    EE_CVAR_SET(op1, EE_SEXT32((uint32_t)(EE_CVAR_GET(op1)) + (uint32_t)(-1)));
+                    r8.d[0] = EE_SEXT32((uint32_t)(r8.d[0]) << 6);
+                    { int c_ = ((int64_t)(EE_CVAR_GET(coflag)) == 0); r8.d[0] = EE_SEXT32((uint32_t)(EE_CVAR_GET(op2)) + (uint32_t)(r8.d[0])); if (c_) goto label; }
+                    vu_lqc2(4, ((uintptr_t)(uint32_t)(r8.d[0]) + (0x20)));
+                    vu_clip(VF(5), VF(5)[3]);
+                    vu_mul_bc(VACC, VF(24), VF(4)[0], 15);
+                    vu_madd_bc(VACC, VF(25), VF(4)[1], 15);
+                    vu_madd_bc(VACC, VF(26), VF(4)[2], 15);
+                    vu_madd_bc(VF(5), VF(27), VF(0)[3], 15);
+                    r9.d[0] = (uint64_t)vu_cfc2(18);
+                    { int c_ = ((int64_t)(EE_CVAR_GET(op1)) != 0); EE_CVAR_SET(coflag, (EE_CVAR_GET(coflag)) & r9.d[0]); if (c_) goto L_njCnkCsUvn_l_002D2AB8; }
+                    vu_clip(VF(5), VF(5)[3]);
+                    r9.d[0] = (uint64_t)vu_cfc2(18);
+                    EE_CVAR_SET(coflag, (EE_CVAR_GET(coflag)) & r9.d[0]);
+                }
                     
                 if (coflag != 0)
                 {
@@ -2541,89 +2766,141 @@ CHUNK_HEAD* njCnkCsUvn(CHUNK_HEAD* pCnk)
                 {
                     float zbuff[4] = { -Ps2_zbuff_b, 0.003921569f, -Ps2_zbuff_a, 65534.0f }; 
                     
-                    asm volatile
-                    ("
-                    .set noreorder
-                        lqc2 vf8, 0(%0)
-                    .set reorder
-                    " : : "r"(zbuff) : "v1", "memory"
-                    );  
+                    { /* translated from EE asm by agent mips2c; original kept below */
+                    /* |  */
+                    /* |                     (" */
+                    /* |                     .set noreorder */
+                    /* |                         lqc2 vf8, 0(%0) */
+                    /* |                     .set reorder */
+                    /* |                     " : : "r"(zbuff) : "v1", "memory" */
+                    /* |                     );   */
+                        __typeof__((zbuff) + 0) op0 = (zbuff);
+                        vu_lqc2(8, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op0)) + (0)));
+                    }
    
-                    asm volatile
-                    ("
-                    .set noreorder
-                        andi      %3, %3, 0xFFFF
-                        
-                        move      t3, %0
-                        move      t4, %1
-                    
-                        ldl       t0, 0x7(t4)
-                        ldr       t0,   0(t4)
-                        
-                        addiu     t4, t4, 6
-                    
-                        andi      t1, t0, 0xFFFF
-                        
-                        dsrl      t0, t0, 16
-                        sll       t1, t1, 6
-                        
-                        add       t2, %2, t1
-                        
-                    l_002D2B38: 
-                        lqc2      vf4,    0(t2)
-                        lqc2      vf5, 0x10(t2)
-                        lqc2      vf6, 0x20(t2)
-                        lqc2      vf7, 0x30(t2)
-
-                        pextlh    t0, zero, t0
-                    
-                        qmtc2     t0, vf4
-                    
-                        vitof0.xy vf4, vf4
-                        
-                        vmove.z   vf4, vf7
-                        
-                        vmuly.xy  vf4, vf4, vf8y
-                        
-                        vmove.w   vf5, vf7
-                        
-                        vmulax.z  ACC, vf7, vf8x
-                        
-                        vmaddw.z  vf7, vf8, vf0w
-                        
-                        ldl       t0, 0x7(t4)
-                        ldr       t0,   0(t4)
-                        
-                        addiu     t4, t4, 6
-                        
-                        vmax.z    vf7, vf7, vf0
-                        
-                        andi      t1, t0, 0xFFFF
-                    
-                        dsrl      t0, t0, 16
-                        sll       t1, t1, 6
-                        
-                        add       t2, %2, t1
-                        
-                        vminiw.z  vf7, vf7, vf8w
-                        
-                        vmove.w   vf7, vf6
-                        
-                        addi      %3, %3, -1
-                        
-                        sqc2      vf4,    0(t3)
-                        sqc2      vf5, 0x10(t3)
-                        sqc2      vf6, 0x20(t3)
-                        sqc2      vf7, 0x30(t3)
-                        
-                        sw        %4, VU1_STRIP_BUF.fPad1(%0)
-                        
-                        bnez      %3, l_002D2B38 
-                        
-                        addiu     t3, t3, 64
-                    .set reorder
-                    " : : "r"(pS), "r"(uspCnk), "m"(pNaCnkVerBufTop), "r"(usMax), "r"(usColorCalc) : "t0", "t1", "t2", "memory"
-                    );
+                    { /* translated from EE asm by agent mips2c; original kept below */
+                    /* |  */
+                    /* |                     (" */
+                    /* |                     .set noreorder */
+                    /* |                         andi      %3, %3, 0xFFFF */
+                    /* |                          */
+                    /* |                         move      t3, %0 */
+                    /* |                         move      t4, %1 */
+                    /* |                      */
+                    /* |                         ldl       t0, 0x7(t4) */
+                    /* |                         ldr       t0,   0(t4) */
+                    /* |                          */
+                    /* |                         addiu     t4, t4, 6 */
+                    /* |                      */
+                    /* |                         andi      t1, t0, 0xFFFF */
+                    /* |                          */
+                    /* |                         dsrl      t0, t0, 16 */
+                    /* |                         sll       t1, t1, 6 */
+                    /* |                          */
+                    /* |                         add       t2, %2, t1 */
+                    /* |                          */
+                    /* |                     l_002D2B38:  */
+                    /* |                         lqc2      vf4,    0(t2) */
+                    /* |                         lqc2      vf5, 0x10(t2) */
+                    /* |                         lqc2      vf6, 0x20(t2) */
+                    /* |                         lqc2      vf7, 0x30(t2) */
+                    /* |  */
+                    /* |                         pextlh    t0, zero, t0 */
+                    /* |                      */
+                    /* |                         qmtc2     t0, vf4 */
+                    /* |                      */
+                    /* |                         vitof0.xy vf4, vf4 */
+                    /* |                          */
+                    /* |                         vmove.z   vf4, vf7 */
+                    /* |                          */
+                    /* |                         vmuly.xy  vf4, vf4, vf8y */
+                    /* |                          */
+                    /* |                         vmove.w   vf5, vf7 */
+                    /* |                          */
+                    /* |                         vmulax.z  ACC, vf7, vf8x */
+                    /* |                          */
+                    /* |                         vmaddw.z  vf7, vf8, vf0w */
+                    /* |                          */
+                    /* |                         ldl       t0, 0x7(t4) */
+                    /* |                         ldr       t0,   0(t4) */
+                    /* |                          */
+                    /* |                         addiu     t4, t4, 6 */
+                    /* |                          */
+                    /* |                         vmax.z    vf7, vf7, vf0 */
+                    /* |                          */
+                    /* |                         andi      t1, t0, 0xFFFF */
+                    /* |                      */
+                    /* |                         dsrl      t0, t0, 16 */
+                    /* |                         sll       t1, t1, 6 */
+                    /* |                          */
+                    /* |                         add       t2, %2, t1 */
+                    /* |                          */
+                    /* |                         vminiw.z  vf7, vf7, vf8w */
+                    /* |                          */
+                    /* |                         vmove.w   vf7, vf6 */
+                    /* |                          */
+                    /* |                         addi      %3, %3, -1 */
+                    /* |                          */
+                    /* |                         sqc2      vf4,    0(t3) */
+                    /* |                         sqc2      vf5, 0x10(t3) */
+                    /* |                         sqc2      vf6, 0x20(t3) */
+                    /* |                         sqc2      vf7, 0x30(t3) */
+                    /* |                          */
+                    /* |                         sw        %4, VU1_STRIP_BUF.fPad1(%0) */
+                    /* |                          */
+                    /* |                         bnez      %3, l_002D2B38  */
+                    /* |                          */
+                    /* |                         addiu     t3, t3, 64 */
+                    /* |                     .set reorder */
+                    /* |                     " : : "r"(pS), "r"(uspCnk), "m"(pNaCnkVerBufTop), "r"(usMax), "r"(usColorCalc) : "t0", "t1", "t2", "memory" */
+                    /* |                     ); */
+                        ee_gpr r8 = {{0}}, r9 = {{0}}, r10 = {{0}}, r11 = {{0}}, r12 = {{0}};
+                        __typeof__((usMax) + 0) op0 = (usMax);
+                        __typeof__((pS) + 0) op1 = (pS);
+                        __typeof__((uspCnk) + 0) op2 = (uspCnk);
+                        __typeof__((pNaCnkVerBufTop) + 0) op3 = (pNaCnkVerBufTop);
+                        __typeof__((usColorCalc) + 0) op4 = (usColorCalc);
+                        EE_CVAR_SET(op0, (EE_CVAR_GET(op0)) & (uint64_t)(uint16_t)(0xFFFF));
+                        r11.d[0] = EE_CVAR_GET(op1);
+                        r12.d[0] = EE_CVAR_GET(op2);
+                        r8.d[0] = ee_ld64(((uintptr_t)(uint32_t)(r12.d[0]) + (0x7)) - 7);
+                        r8.d[0] = ee_ld64(((uintptr_t)(uint32_t)(r12.d[0]) + (0)));
+                        r12.d[0] = EE_SEXT32((uint32_t)(r12.d[0]) + (uint32_t)(6));
+                        r9.d[0] = (r8.d[0]) & (uint64_t)(uint16_t)(0xFFFF);
+                        r8.d[0] = r8.d[0] >> (16);
+                        r9.d[0] = EE_SEXT32((uint32_t)(r9.d[0]) << 6);
+                        r10.d[0] = EE_SEXT32((uint32_t)(EE_CVAR_GET(op3)) + (uint32_t)(r9.d[0]));
+                        L_njCnkCsUvn_l_002D2B38:;
+                        vu_lqc2(4, ((uintptr_t)(uint32_t)(r10.d[0]) + (0)));
+                        vu_lqc2(5, ((uintptr_t)(uint32_t)(r10.d[0]) + (0x10)));
+                        vu_lqc2(6, ((uintptr_t)(uint32_t)(r10.d[0]) + (0x20)));
+                        vu_lqc2(7, ((uintptr_t)(uint32_t)(r10.d[0]) + (0x30)));
+                        r8 = ee_pextlh((ee_gpr){{0}}, r8);
+                        vu_qmtc2(4, r8);
+                        vu_itof(VF(4), VF(4), 12, (1.0f / 1.0f));
+                        vu_move(VF(4), VF(7), 2);
+                        vu_mul_bc(VF(4), VF(4), VF(8)[1], 12);
+                        vu_move(VF(5), VF(7), 1);
+                        vu_mul_bc(VACC, VF(7), VF(8)[0], 2);
+                        vu_madd_bc(VF(7), VF(8), VF(0)[3], 2);
+                        r8.d[0] = ee_ld64(((uintptr_t)(uint32_t)(r12.d[0]) + (0x7)) - 7);
+                        r8.d[0] = ee_ld64(((uintptr_t)(uint32_t)(r12.d[0]) + (0)));
+                        r12.d[0] = EE_SEXT32((uint32_t)(r12.d[0]) + (uint32_t)(6));
+                        vu_max(VF(7), VF(7), VF(0), 2);
+                        r9.d[0] = (r8.d[0]) & (uint64_t)(uint16_t)(0xFFFF);
+                        r8.d[0] = r8.d[0] >> (16);
+                        r9.d[0] = EE_SEXT32((uint32_t)(r9.d[0]) << 6);
+                        r10.d[0] = EE_SEXT32((uint32_t)(EE_CVAR_GET(op3)) + (uint32_t)(r9.d[0]));
+                        vu_mini_bc(VF(7), VF(7), VF(8)[3], 2);
+                        vu_move(VF(7), VF(6), 1);
+                        EE_CVAR_SET(op0, EE_SEXT32((uint32_t)(EE_CVAR_GET(op0)) + (uint32_t)(-1)));
+                        vu_sqc2(4, ((uintptr_t)(uint32_t)(r11.d[0]) + (0)));
+                        vu_sqc2(5, ((uintptr_t)(uint32_t)(r11.d[0]) + (0x10)));
+                        vu_sqc2(6, ((uintptr_t)(uint32_t)(r11.d[0]) + (0x20)));
+                        vu_sqc2(7, ((uintptr_t)(uint32_t)(r11.d[0]) + (0x30)));
+                        *(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(op1)) + ((int)offsetof(VU1_STRIP_BUF, fPad1)))) = (uint32_t)(EE_CVAR_GET(op4));
+                        { int c_ = ((int64_t)(EE_CVAR_GET(op0)) != 0); r11.d[0] = EE_SEXT32((uint32_t)(r11.d[0]) + (uint32_t)(64)); if (c_) goto L_njCnkCsUvn_l_002D2B38; }
+                    }
                 
                     uspCnk += usMax * 3;
                     
@@ -2632,7 +2909,7 @@ CHUNK_HEAD* njCnkCsUvn(CHUNK_HEAD* pCnk)
                     p[0] = 0;
                     p[1] = vu1func_tag;
                     
-                    sceDmaSend((sceDmaChan*)D1_CHCR, (void*)((unsigned int)ulpP | 0x80000000));
+                    sceDmaSend((sceDmaChan*)D1_CHCR, (void*)ulpP);
                     
                     Ps2_chunk_buff_flip ^= 1;
                 }
@@ -2673,7 +2950,7 @@ CHUNK_HEAD* njCnkCsUvn(CHUNK_HEAD* pCnk)
 
                 cflag = 0x3F;
                 
-                ulpP = (unsigned long*)pS;
+                ulpP = (u_long*)pS;
                 
                 if ((usMax = usNum) > 60) 
                 {

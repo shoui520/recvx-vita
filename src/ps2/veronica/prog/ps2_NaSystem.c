@@ -89,9 +89,14 @@ void Ps2SwapDBuff()
     
     Ps2_vcount = 0; 
 
+#ifdef RECVX_VITA
+    /* SR_CU0 aliases T0_COUNT (0x10000000) */
+    *T0_COUNT = 0;
+#else
     printf("TICK = %d\n", *(volatile unsigned int*)SR_CU0); 
     
     *(volatile unsigned int*)SR_CU0 = 0; 
+#endif
     
     VsyncFunc(); 
 } 
@@ -107,6 +112,7 @@ int vsync_func(int)
     }
     
     ExitHandler(); 
+    return 0; /* fell off the end on the EE */
 } 
 
 #pragma optimization_level reset
@@ -145,12 +151,12 @@ void	njExitSystem( void )
 // 100% matching!
 void	njSetBackColor( Uint32 col1, Uint32 col2, Uint32 col3 ) 
 {
-    unsigned long tmp; 
+    u_long tmp; 
 
     tmp = SCE_GS_SET_RGBAQ((col1 >> 16) & 0xFF, (col1 >> 8) & 0xFF, col1 & 0xFF, (col1 >> 24) & 0xFF, 0); 
     
-    *(unsigned long*)UNCACHED(&Db.clear0.rgbaq) = tmp; 
-    *(unsigned long*)UNCACHED(&Db.clear1.rgbaq) = tmp; 
+    *(u_long*)UNCACHED(&Db.clear0.rgbaq) = tmp; 
+    *(u_long*)UNCACHED(&Db.clear1.rgbaq) = tmp; 
 } 
 
 // 100% matching! 
@@ -168,7 +174,7 @@ void    njPolygonCullingMode( Int mode )
 // 99.91% matching 
 void njColorBlendingModeSys(int s_mode, int d_mode) // this function is not on this KATANA release
 { 
-    static unsigned long alpha_tbl[13][12] = 
+    static u_long alpha_tbl[13][12] = 
     {
     	{
     		0xFFFFFFFF,
@@ -353,7 +359,7 @@ void njColorBlendingModeSys(int s_mode, int d_mode) // this function is not on t
     		0xFFFFFFFF,
     	},
     };
-    unsigned long alpha_value;
+    u_long alpha_value;
     
     Ps2_gs_save.mode_bk[0] = s_mode; 
     Ps2_gs_save.mode_bk[1] = d_mode; 
@@ -438,11 +444,11 @@ void    njSetCheapShadowMode( Int mode )
 // 99.95% matching 
 void	njUserClipping(Int mode ,NJS_POINT2 *p)
 { 
-    unsigned long* np; // changed the original var name from the debugging symbols 
+    u_long* np; // changed the original var name from the debugging symbols 
     sceVu0FVECTOR posf;
     sceVu0IVECTOR posi;
 
-    np = (unsigned long*)WORKBASE;
+    np = (u_long*)WORKBASE;
     
     D2_SyncTag(); 
     

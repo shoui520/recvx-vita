@@ -15,6 +15,7 @@
 #include "../../../ps2/veronica/prog/ps2_NaTextureFunction.h"
 #include "../../../ps2/veronica/prog/ps2_NinjaCnk.h"
 #include "../../../ps2/veronica/prog/ps2_NinjaPtcl.h"
+#include "../../../ps2/veronica/prog/effect.h"
 
 static unsigned int owk_scn_noG;
 

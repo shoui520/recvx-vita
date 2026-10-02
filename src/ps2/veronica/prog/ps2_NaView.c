@@ -263,16 +263,22 @@ void _Make_ClipMatrix(sceVu0FMATRIX sc, float scr, float near, float far)
 
     mp2 = &ClipMatrix2[0]; 
     
-    asm volatile 
-    { 
-    .set noreorder
-        
-        lqc2 $vf24, 0x0(mp2) 
-        lqc2 $vf25, 0x10(mp2) 
-        lqc2 $vf26, 0x20(mp2) 
-        lqc2 $vf27, 0x30(mp2)
-
-    .set reorder
+    { /* translated from EE asm by agent mips2c; original kept below */
+    /* |  */
+    /* |     {  */
+    /* |     .set noreorder */
+    /* |          */
+    /* |         lqc2 $vf24, 0x0(mp2)  */
+    /* |         lqc2 $vf25, 0x10(mp2)  */
+    /* |         lqc2 $vf26, 0x20(mp2)  */
+    /* |         lqc2 $vf27, 0x30(mp2) */
+    /* |  */
+    /* |     .set reorder */
+    /* |     } */
+        vu_lqc2(24, ((uintptr_t)(uint32_t)(EE_CVAR_GET(mp2)) + (0x0)));
+        vu_lqc2(25, ((uintptr_t)(uint32_t)(EE_CVAR_GET(mp2)) + (0x10)));
+        vu_lqc2(26, ((uintptr_t)(uint32_t)(EE_CVAR_GET(mp2)) + (0x20)));
+        vu_lqc2(27, ((uintptr_t)(uint32_t)(EE_CVAR_GET(mp2)) + (0x30)));
     }
 
     fM = ClipScreenMatrix[0];
@@ -280,17 +286,24 @@ void _Make_ClipMatrix(sceVu0FMATRIX sc, float scr, float near, float far)
     fw = &ClipDispW; 
     fh = &ClipDispH; 
 
-    asm volatile 
-    { 
-    .set noreorder
-        
-        lwc1 $f8, 0x0(fw) 
-        lwc1 $f9, 0x0(fh) 
-        
-        swc1 $f8, 0x2C(fM) 
-        swc1 $f9, 0x28(fM)
-
-    .set reorder
+    { /* translated from EE asm by agent mips2c; original kept below */
+    /* |  */
+    /* |     {  */
+    /* |     .set noreorder */
+    /* |          */
+    /* |         lwc1 $f8, 0x0(fw)  */
+    /* |         lwc1 $f9, 0x0(fh)  */
+    /* |          */
+    /* |         swc1 $f8, 0x2C(fM)  */
+    /* |         swc1 $f9, 0x28(fM) */
+    /* |  */
+    /* |     .set reorder */
+    /* |     } */
+        float f8 = 0, f9 = 0;
+        f8 = ee_bitsf(*(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(fw)) + (0x0))));
+        f9 = ee_bitsf(*(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(fh)) + (0x0))));
+        *(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(fM)) + (0x2C))) = ee_fbits(f8);
+        *(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(fM)) + (0x28))) = ee_fbits(f9);
     }
 } 
 

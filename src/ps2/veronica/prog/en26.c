@@ -17,6 +17,8 @@
 #include "../../../ps2/veronica/prog/zonzon1.h"
 #include "../../../ps2/veronica/prog/player.h"
 #include "../../../ps2/veronica/prog/Motion.h"
+#include "../../../ps2/veronica/prog/MdlPut.h"
+#include "../../../ps2/veronica/prog/effsub3.h"
 
 #pragma optimization_level 4
 
@@ -2072,6 +2074,7 @@ int bhEne26_ActionModeCheck(BH_PWORK* epw)
             }
         }
     }
+    return 0; /* fell off the end on the EE */
 }
 
 #pragma divbyzerocheck on

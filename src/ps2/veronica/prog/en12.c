@@ -10,6 +10,9 @@
 #include "../../../ps2/veronica/prog/njplus.h"
 #include "../../../ps2/veronica/prog/ps2_NaMatrix.h"
 #include "../../../ps2/veronica/prog/hitchkl.h"
+#include "../../../ps2/veronica/prog/sdfunc.h"
+#include "../../../ps2/veronica/prog/MdlPut.h"
+#include "../../../ps2/veronica/prog/rutchk.h"
 
 // ENEMY: First Form Alexia 
 

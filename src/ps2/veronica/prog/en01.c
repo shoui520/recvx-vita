@@ -17,6 +17,8 @@
 #include "../../../ps2/veronica/prog/pwksub.h"
 #include "../../../ps2/veronica/prog/Motion.h"
 #include "../../../ps2/veronica/prog/sdfunc.h"
+#include "../../../ps2/veronica/prog/MdlPut.h"
+#include "../../../ps2/veronica/prog/effsub3.h"
 
 #pragma	optimization_level 4
 
@@ -2827,6 +2829,7 @@ BH_PWORK* bhEne01_SetLinkEnemy(BH_PWORK* epw, int lkono, short id)
 	epp->mlwP = epw->mdl;
 	epp->mnwP = epw->mnwP;
 	epp->id = id;
+    return epp; /* fell off the end on the EE */
 }
 
 // 100% matching!
@@ -4855,7 +4858,7 @@ int bhEne01_ActionModeCheck(BH_PWORK *epw)
         }
     }
 
-    return;
+    return 0;
 }
 
 // 100% matching!

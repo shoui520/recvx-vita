@@ -85,6 +85,7 @@ int CalcIntersectionCone(float* ans, float* v0, float* v1)
     
     sceVu0ScaleVector(ans, tmp1, tmpf);
     sceVu0AddVector(ans, ans, v0);
+    return 0; /* fell off the end on the EE */
 }
 
 // 100% matching!
@@ -122,7 +123,7 @@ void    njDrawLine3D(NJS_POINT3COL *p, Int n, Uint32 attr)
     float buff[32][4]; 
     float (*bp)[4];    
     unsigned int i;    
-    unsigned long prim; 
+    u_long prim; 
     NJS_SCRVECTOR scr; 
     
     if ((attr & 0x2)) 
@@ -242,7 +243,7 @@ void njDrawLine3DEx(NJS_POINT3COL* p, int n, unsigned int attr)
     float pos[2][4];   
     float ans[4];       
     unsigned int i;     
-    unsigned long prim; 
+    u_long prim; 
     NJS_SCRVECTOR scr;  
     
     if ((attr & 0x2)) 
@@ -404,7 +405,7 @@ void    njDrawTriangle3D(NJS_POINT3COL *p, Int n, Uint32 attr)
     float buff[96][4]; 
     float (*bp)[4];    
     unsigned int i;    
-    unsigned long prim; 
+    u_long prim; 
     NJS_SCRVECTOR scr;  
     
     if ((attr & 0x2)) 
@@ -481,7 +482,7 @@ void    njDrawPolygon3D(NJS_POINT3COL *p, Int n, Uint32 attr)
     float buff[64][4];            
     float (*bp)[4];              
     unsigned int i;              
-    unsigned long prim;          
+    u_long prim;          
     NJS_SCRVECTOR scr;           
     VU1_STRIP_BUF* vp;            
     static VU1_STRIP_BUF vb[256]; 

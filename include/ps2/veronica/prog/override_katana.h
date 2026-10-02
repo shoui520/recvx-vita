@@ -1,4 +1,4 @@
-// MWCC has long as 8 bytes, so we need to change the following typedefs to use int instead
+// MWCC has ee_long as 8 bytes, so we need to change the following typedefs to use int instead
 
 #ifndef _TYPEDEF_Uint32
 #define _TYPEDEF_Uint32

@@ -793,34 +793,50 @@ void _fmCnkCalcMuscle(MASK_WORK* fm)
     
     n = fm->jnum;
     
-    asm volatile
-    ("
-    .set noreorder
-        ble  %0, zero, lbl_8C
-        
-        lw   t0, TANG_WORK.id(%1)
-        
-    lbl_5C:
-        muli t0, t0, 32
-        
-        add  t1, %4, t0
-        add  t2, %3, t0
-        
-        lq   t3, 0(t2)
-        
-        addi %1, %1,  8
-        addi %0, %0, -1
-        
-        lw   t0, TANG_WORK.id(%1)
-        
-        bgt  %0, zero, lbl_5C
-        
-        sq   t3, 0(t1)
-        
-    lbl_8C:
-    .set reorder
-    " : "=r"(n), "=r"(jaw) : "r"(jaw->id), "r"(svp), "r"(dvp) : "t0", "t1", "t2", "t3", "memory" 
-    );
+    { /* translated from EE asm by agent mips2c; original kept below */
+    /* |  */
+    /* |     (" */
+    /* |     .set noreorder */
+    /* |         ble  %0, zero, lbl_8C */
+    /* |          */
+    /* |         lw   t0, TANG_WORK.id(%1) */
+    /* |          */
+    /* |     lbl_5C: */
+    /* |         muli t0, t0, 32 */
+    /* |          */
+    /* |         add  t1, %4, t0 */
+    /* |         add  t2, %3, t0 */
+    /* |          */
+    /* |         lq   t3, 0(t2) */
+    /* |          */
+    /* |         addi %1, %1,  8 */
+    /* |         addi %0, %0, -1 */
+    /* |          */
+    /* |         lw   t0, TANG_WORK.id(%1) */
+    /* |          */
+    /* |         bgt  %0, zero, lbl_5C */
+    /* |          */
+    /* |         sq   t3, 0(t1) */
+    /* |          */
+    /* |     lbl_8C: */
+    /* |     .set reorder */
+    /* |     " : "=r"(n), "=r"(jaw) : "r"(jaw->id), "r"(svp), "r"(dvp) : "t0", "t1", "t2", "t3", "memory"  */
+    /* |     ); */
+        ee_gpr r8 = {{0}}, r9 = {{0}}, r10 = {{0}}, r11 = {{0}};
+        __typeof__((dvp) + 0) op0 = (dvp);
+        __typeof__((svp) + 0) op1 = (svp);
+        { int c_ = ((int64_t)(EE_CVAR_GET(n)) <= (int64_t)(0)); r8.d[0] = EE_SEXT32(*(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(jaw)) + ((int)offsetof(TANG_WORK, id))))); if (c_) goto L__fmCnkCalcMuscle_lbl_8C; }
+        L__fmCnkCalcMuscle_lbl_5C:;
+        r8.d[0] = EE_SEXT32((uint32_t)((int32_t)(r8.d[0]) * (int32_t)(32)));
+        r9.d[0] = EE_SEXT32((uint32_t)(EE_CVAR_GET(op0)) + (uint32_t)(r8.d[0]));
+        r10.d[0] = EE_SEXT32((uint32_t)(EE_CVAR_GET(op1)) + (uint32_t)(r8.d[0]));
+        r11 = (*(ee_gpr *)((((uintptr_t)(uint32_t)(r10.d[0]) + (0))) & ~(uintptr_t)15));
+        EE_CVAR_SET(jaw, EE_SEXT32((uint32_t)(EE_CVAR_GET(jaw)) + (uint32_t)(8)));
+        EE_CVAR_SET(n, EE_SEXT32((uint32_t)(EE_CVAR_GET(n)) + (uint32_t)(-1)));
+        r8.d[0] = EE_SEXT32(*(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(jaw)) + ((int)offsetof(TANG_WORK, id)))));
+        { int c_ = ((int64_t)(EE_CVAR_GET(n)) > (int64_t)(0)); *(ee_gpr *)((((uintptr_t)(uint32_t)(r9.d[0]) + (0))) & ~(uintptr_t)15) = r11; if (c_) goto L__fmCnkCalcMuscle_lbl_5C; }
+        L__fmCnkCalcMuscle_lbl_8C:;
+    }
     
     con = fm->list;
     list = fm->vlist;
@@ -869,63 +885,101 @@ void _fmCnkCalcMuscle(MASK_WORK* fm)
         p0 = mvp;
         p1 = mrp;
         
-        asm volatile
-        ("
-        .set noreorder
-            ble   %7, zero, lbl_220
-            
-            mfc1  t0, %4
-            
-            addi  %2, %5, -4
-            addi  %3, %6, -4
-            addi  %7, %7, -1
-            
-            mtc1  t0, f8
-            
-            lwc1  f7, 0(%3)
-            
-            lw    t1, 0(%2)
-            
-            lwc1  f1, 0(%1)
-            lwc1  f2, 4(%1)
-            lwc1  f3, 8(%1)
-            
-        lbl_1D0:
-            mul.s f7, f7, f8
-            
-            lwc1  f4, 0(t1)
-            lwc1  f5, 4(t1)
-            lwc1  f6, 8(t1)
-            
-            addi  %3, %3, -4
-            
-            mul.s f4, f4, f7
-            mul.s f5, f5, f7
-            mul.s f6, f6, f7
-            
-            addi  %2, %2, -4
-            
-            add.s f1, f1, f4
-            add.s f2, f2, f5
-            add.s f3, f3, f6
-            
-            addi  %7, %7, -1
-            
-            lwc1  f7, 0(%3)
-            
-            bge   %7, zero, lbl_1D0
-            
-            lw    t1, 0(%2)
-            
-            swc1  f1, 0(%1)
-            swc1  f2, 4(%1)
-            swc1  f3, 8(%1)
-            
-        lbl_220:
-        .set reorder
-        " : "=r"(svp), "=r"(dvp), "=r"(p0), "=r"(p1) : "f"(rsum), "r"(mvp), "r"(mrp), "r"(m)
-          : "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "t0", "t1", "memory"
-        );
+        { /* translated from EE asm by agent mips2c; original kept below */
+        /* |  */
+        /* |         (" */
+        /* |         .set noreorder */
+        /* |             ble   %7, zero, lbl_220 */
+        /* |              */
+        /* |             mfc1  t0, %4 */
+        /* |              */
+        /* |             addi  %2, %5, -4 */
+        /* |             addi  %3, %6, -4 */
+        /* |             addi  %7, %7, -1 */
+        /* |              */
+        /* |             mtc1  t0, f8 */
+        /* |              */
+        /* |             lwc1  f7, 0(%3) */
+        /* |              */
+        /* |             lw    t1, 0(%2) */
+        /* |              */
+        /* |             lwc1  f1, 0(%1) */
+        /* |             lwc1  f2, 4(%1) */
+        /* |             lwc1  f3, 8(%1) */
+        /* |              */
+        /* |         lbl_1D0: */
+        /* |             mul.s f7, f7, f8 */
+        /* |              */
+        /* |             lwc1  f4, 0(t1) */
+        /* |             lwc1  f5, 4(t1) */
+        /* |             lwc1  f6, 8(t1) */
+        /* |              */
+        /* |             addi  %3, %3, -4 */
+        /* |              */
+        /* |             mul.s f4, f4, f7 */
+        /* |             mul.s f5, f5, f7 */
+        /* |             mul.s f6, f6, f7 */
+        /* |              */
+        /* |             addi  %2, %2, -4 */
+        /* |              */
+        /* |             add.s f1, f1, f4 */
+        /* |             add.s f2, f2, f5 */
+        /* |             add.s f3, f3, f6 */
+        /* |              */
+        /* |             addi  %7, %7, -1 */
+        /* |              */
+        /* |             lwc1  f7, 0(%3) */
+        /* |              */
+        /* |             bge   %7, zero, lbl_1D0 */
+        /* |              */
+        /* |             lw    t1, 0(%2) */
+        /* |              */
+        /* |             swc1  f1, 0(%1) */
+        /* |             swc1  f2, 4(%1) */
+        /* |             swc1  f3, 8(%1) */
+        /* |              */
+        /* |         lbl_220: */
+        /* |         .set reorder */
+        /* |         " : "=r"(svp), "=r"(dvp), "=r"(p0), "=r"(p1) : "f"(rsum), "r"(mvp), "r"(mrp), "r"(m) */
+        /* |           : "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "t0", "t1", "memory" */
+        /* |         ); */
+            ee_gpr r8 = {{0}}, r9 = {{0}};
+            float f1 = 0, f2 = 0, f3 = 0, f4 = 0, f5 = 0, f6 = 0, f7 = 0, f8 = 0;
+            __typeof__((rsum) + 0) op0 = (rsum);
+            __typeof__((m) + 0) op1 = (m);
+            __typeof__((mvp) + 0) op2 = (mvp);
+            __typeof__((mrp) + 0) op3 = (mrp);
+            { int c_ = ((int64_t)(EE_CVAR_GET(op1)) <= (int64_t)(0)); r8.d[0] = EE_SEXT32(ee_fbits(EE_CVAR_GETF(op0))); if (c_) goto L__fmCnkCalcMuscle_lbl_220; }
+            EE_CVAR_SET(p0, EE_SEXT32((uint32_t)(EE_CVAR_GET(op2)) + (uint32_t)(-4)));
+            EE_CVAR_SET(p1, EE_SEXT32((uint32_t)(EE_CVAR_GET(op3)) + (uint32_t)(-4)));
+            EE_CVAR_SET(op1, EE_SEXT32((uint32_t)(EE_CVAR_GET(op1)) + (uint32_t)(-1)));
+            f8 = ee_bitsf((uint32_t)(r8.d[0]));
+            f7 = ee_bitsf(*(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(p1)) + (0))));
+            r9.d[0] = EE_SEXT32(*(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(p0)) + (0))));
+            f1 = ee_bitsf(*(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(dvp)) + (0))));
+            f2 = ee_bitsf(*(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(dvp)) + (4))));
+            f3 = ee_bitsf(*(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(dvp)) + (8))));
+            L__fmCnkCalcMuscle_lbl_1D0:;
+            f7 = f7 * f8;
+            f4 = ee_bitsf(*(uint32_t *)(((uintptr_t)(uint32_t)(r9.d[0]) + (0))));
+            f5 = ee_bitsf(*(uint32_t *)(((uintptr_t)(uint32_t)(r9.d[0]) + (4))));
+            f6 = ee_bitsf(*(uint32_t *)(((uintptr_t)(uint32_t)(r9.d[0]) + (8))));
+            EE_CVAR_SET(p1, EE_SEXT32((uint32_t)(EE_CVAR_GET(p1)) + (uint32_t)(-4)));
+            f4 = f4 * f7;
+            f5 = f5 * f7;
+            f6 = f6 * f7;
+            EE_CVAR_SET(p0, EE_SEXT32((uint32_t)(EE_CVAR_GET(p0)) + (uint32_t)(-4)));
+            f1 = f1 + f4;
+            f2 = f2 + f5;
+            f3 = f3 + f6;
+            EE_CVAR_SET(op1, EE_SEXT32((uint32_t)(EE_CVAR_GET(op1)) + (uint32_t)(-1)));
+            f7 = ee_bitsf(*(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(p1)) + (0))));
+            { int c_ = ((int64_t)(EE_CVAR_GET(op1)) >= (int64_t)(0)); r9.d[0] = EE_SEXT32(*(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(p0)) + (0)))); if (c_) goto L__fmCnkCalcMuscle_lbl_1D0; }
+            *(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(dvp)) + (0))) = ee_fbits(f1);
+            *(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(dvp)) + (4))) = ee_fbits(f2);
+            *(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(dvp)) + (8))) = ee_fbits(f3);
+            L__fmCnkCalcMuscle_lbl_220:;
+        }
     }
 }
 
@@ -973,40 +1027,64 @@ void _fmCnkCalcJaw(MASK_WORK* fm)
             
             if (jaw->rate == 1.0f) 
             {
-                asm volatile
-                ("
-                .set noreorder
-                    ldl         t0, 0x7(%2) 
-                    ldr         t0,   0(%2)
-                    
-                    lw          t1, NJS_POINT4.z(%2) 
-                    
-                    pcpyld      t0, t1, t0
-                
-                    qmtc2       t0, vf4
-                
-                    lqc2        vf5,    0(%1)
-                    lqc2        vf6, 0x10(%1)
-                    lqc2        vf7, 0x20(%1) 
-                    lqc2        vf8, 0x30(%1) 
-                    
-                    vmulax.xyz  ACC,  vf5, vf4
-                    
-                    vmadday.xyz ACC,  vf6, vf4
-                    vmaddaz.xyz ACC,  vf7, vf4
-                    vmaddw.xyz  vf18, vf8, vf0w
-                    
-                    qmfc2       t0, vf18
-                
-                    pcpyud      t1, t0, t0
-                
-                    sdl         t0, 0x7(%0)
-                    sdr         t0,   0(%0) 
-                    
-                    sw          t1, NJS_POINT4.z(%0) 
-                .set reorder
-                " : : "r"(&vec), "r"(mat), "r"(dvp1) : 
-                ); 
+                { /* translated from EE asm by agent mips2c; original kept below */
+                /* |  */
+                /* |                 (" */
+                /* |                 .set noreorder */
+                /* |                     ldl         t0, 0x7(%2)  */
+                /* |                     ldr         t0,   0(%2) */
+                /* |                      */
+                /* |                     lw          t1, NJS_POINT4.z(%2)  */
+                /* |                      */
+                /* |                     pcpyld      t0, t1, t0 */
+                /* |                  */
+                /* |                     qmtc2       t0, vf4 */
+                /* |                  */
+                /* |                     lqc2        vf5,    0(%1) */
+                /* |                     lqc2        vf6, 0x10(%1) */
+                /* |                     lqc2        vf7, 0x20(%1)  */
+                /* |                     lqc2        vf8, 0x30(%1)  */
+                /* |                      */
+                /* |                     vmulax.xyz  ACC,  vf5, vf4 */
+                /* |                      */
+                /* |                     vmadday.xyz ACC,  vf6, vf4 */
+                /* |                     vmaddaz.xyz ACC,  vf7, vf4 */
+                /* |                     vmaddw.xyz  vf18, vf8, vf0w */
+                /* |                      */
+                /* |                     qmfc2       t0, vf18 */
+                /* |                  */
+                /* |                     pcpyud      t1, t0, t0 */
+                /* |                  */
+                /* |                     sdl         t0, 0x7(%0) */
+                /* |                     sdr         t0,   0(%0)  */
+                /* |                      */
+                /* |                     sw          t1, NJS_POINT4.z(%0)  */
+                /* |                 .set reorder */
+                /* |                 " : : "r"(&vec), "r"(mat), "r"(dvp1) :  */
+                /* |                 );  */
+                    ee_gpr r8 = {{0}}, r9 = {{0}};
+                    __typeof__((dvp1) + 0) op0 = (dvp1);
+                    __typeof__((mat) + 0) op1 = (mat);
+                    __typeof__((&vec) + 0) op2 = (&vec);
+                    r8.d[0] = ee_ld64(((uintptr_t)(uint32_t)(EE_CVAR_GET(op0)) + (0x7)) - 7);
+                    r8.d[0] = ee_ld64(((uintptr_t)(uint32_t)(EE_CVAR_GET(op0)) + (0)));
+                    r9.d[0] = EE_SEXT32(*(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(op0)) + ((int)offsetof(NJS_POINT4, z)))));
+                    r8 = ee_pcpyld(r9, r8);
+                    vu_qmtc2(4, r8);
+                    vu_lqc2(5, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op1)) + (0)));
+                    vu_lqc2(6, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op1)) + (0x10)));
+                    vu_lqc2(7, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op1)) + (0x20)));
+                    vu_lqc2(8, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op1)) + (0x30)));
+                    vu_mul_bc(VACC, VF(5), VF(4)[0], 14);
+                    vu_madd_bc(VACC, VF(6), VF(4)[1], 14);
+                    vu_madd_bc(VACC, VF(7), VF(4)[2], 14);
+                    vu_madd_bc(VF(18), VF(8), VF(0)[3], 14);
+                    r8 = vu_qmfc2(18);
+                    r9 = ee_pcpyud(r8, r8);
+                    ee_sd64(((uintptr_t)(uint32_t)(EE_CVAR_GET(op2)) + (0x7)) - 7, r8.d[0]);
+                    ee_sd64(((uintptr_t)(uint32_t)(EE_CVAR_GET(op2)) + (0)), r8.d[0]);
+                    *(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(op2)) + ((int)offsetof(NJS_POINT4, z)))) = (uint32_t)(r9.d[0]);
+                }
             } 
             else 
             {
@@ -1014,76 +1092,125 @@ void _fmCnkCalcJaw(MASK_WORK* fm)
                 
                 njRotateX(mat2, (int)(182.04445f * (jawang * jaw->rate)) & 0xFFFF);
                 
-                asm volatile
-                ("
-                .set noreorder
-                    mfc1        t0, %4
-                    
-                    lqc2        vf5,    0(%3)
-                    lqc2        vf6, 0x10(%3)
-                    lqc2        vf7, 0x20(%3)
-                    lqc2        vf8, 0x30(%3) 
-                    
-                    qmtc2       t0, vf4 
-                
-                    lqc2        vf9,     0(%2)  
-                    lqc2        vf10, 0x10(%2)
-                    lqc2        vf11, 0x20(%2)
-                    lqc2        vf12, 0x30(%2)
-                    
-                    vmulax.xyz  ACC, vf5, vf4
-                    
-                    vmaddax.xyz ACC, vf6, vf0
-                    vmaddax.xyz ACC, vf7, vf0
-                    vmaddw.xyz  vf8, vf8, vf0w
-                    
-                    ldl         t0, 0x7(%1) 
-                    ldr         t0,   0(%1) 
-                    
-                    lw          t1, NJS_POINT4.z(%1) 
-                    
-                    vmulax.xyz  ACC, vf5, vf9
-                    
-                    vmadday.xyz ACC, vf6, vf9
-                    vmaddz.xyz  vf9, vf7, vf9
-                    
-                    pcpyld      t0, t1, t0
-                
-                    vmulax.xyz  ACC,  vf5, vf10
-                    
-                    vmadday.xyz ACC,  vf6, vf10
-                    vmaddz.xyz  vf10, vf7, vf10
-                    
-                    qmtc2       t0, vf13
-                
-                    vmulax.xyz  ACC,  vf5, vf11
-                    
-                    vmadday.xyz ACC,  vf6, vf11
-                    vmaddz.xyz  vf11, vf7, vf11
-                    
-                    vmulax.xyz  ACC,  vf5, vf12
-                    
-                    vmadday.xyz ACC,  vf6, vf12
-                    vmaddaz.xyz ACC,  vf7, vf12
-                    vmaddw.xyz  vf12, vf8, vf0w
-                    
-                    vmulax.xyz  ACC,  vf9,  vf13
-                    
-                    vmadday.xyz ACC,  vf10, vf13
-                    vmaddaz.xyz ACC,  vf11, vf13
-                    vmaddw.xyz  vf18, vf12, vf0w
-                    
-                    qmfc2       t0, vf18 
-                
-                    pcpyud      t1, t0, t0
-                
-                    sdl         t0, 0x7(%0) 
-                    sdr         t0,   0(%0) 
-                    
-                    sw          t1, NJS_POINT4.z(%0) 
-                .set reorder
-                " : : "r"(&vec), "r"(dvp1), "r"(jmat1), "r"(mat2), "f"(jawtrans) : 
-                ); 
+                { /* translated from EE asm by agent mips2c; original kept below */
+                /* |  */
+                /* |                 (" */
+                /* |                 .set noreorder */
+                /* |                     mfc1        t0, %4 */
+                /* |                      */
+                /* |                     lqc2        vf5,    0(%3) */
+                /* |                     lqc2        vf6, 0x10(%3) */
+                /* |                     lqc2        vf7, 0x20(%3) */
+                /* |                     lqc2        vf8, 0x30(%3)  */
+                /* |                      */
+                /* |                     qmtc2       t0, vf4  */
+                /* |                  */
+                /* |                     lqc2        vf9,     0(%2)   */
+                /* |                     lqc2        vf10, 0x10(%2) */
+                /* |                     lqc2        vf11, 0x20(%2) */
+                /* |                     lqc2        vf12, 0x30(%2) */
+                /* |                      */
+                /* |                     vmulax.xyz  ACC, vf5, vf4 */
+                /* |                      */
+                /* |                     vmaddax.xyz ACC, vf6, vf0 */
+                /* |                     vmaddax.xyz ACC, vf7, vf0 */
+                /* |                     vmaddw.xyz  vf8, vf8, vf0w */
+                /* |                      */
+                /* |                     ldl         t0, 0x7(%1)  */
+                /* |                     ldr         t0,   0(%1)  */
+                /* |                      */
+                /* |                     lw          t1, NJS_POINT4.z(%1)  */
+                /* |                      */
+                /* |                     vmulax.xyz  ACC, vf5, vf9 */
+                /* |                      */
+                /* |                     vmadday.xyz ACC, vf6, vf9 */
+                /* |                     vmaddz.xyz  vf9, vf7, vf9 */
+                /* |                      */
+                /* |                     pcpyld      t0, t1, t0 */
+                /* |                  */
+                /* |                     vmulax.xyz  ACC,  vf5, vf10 */
+                /* |                      */
+                /* |                     vmadday.xyz ACC,  vf6, vf10 */
+                /* |                     vmaddz.xyz  vf10, vf7, vf10 */
+                /* |                      */
+                /* |                     qmtc2       t0, vf13 */
+                /* |                  */
+                /* |                     vmulax.xyz  ACC,  vf5, vf11 */
+                /* |                      */
+                /* |                     vmadday.xyz ACC,  vf6, vf11 */
+                /* |                     vmaddz.xyz  vf11, vf7, vf11 */
+                /* |                      */
+                /* |                     vmulax.xyz  ACC,  vf5, vf12 */
+                /* |                      */
+                /* |                     vmadday.xyz ACC,  vf6, vf12 */
+                /* |                     vmaddaz.xyz ACC,  vf7, vf12 */
+                /* |                     vmaddw.xyz  vf12, vf8, vf0w */
+                /* |                      */
+                /* |                     vmulax.xyz  ACC,  vf9,  vf13 */
+                /* |                      */
+                /* |                     vmadday.xyz ACC,  vf10, vf13 */
+                /* |                     vmaddaz.xyz ACC,  vf11, vf13 */
+                /* |                     vmaddw.xyz  vf18, vf12, vf0w */
+                /* |                      */
+                /* |                     qmfc2       t0, vf18  */
+                /* |                  */
+                /* |                     pcpyud      t1, t0, t0 */
+                /* |                  */
+                /* |                     sdl         t0, 0x7(%0)  */
+                /* |                     sdr         t0,   0(%0)  */
+                /* |                      */
+                /* |                     sw          t1, NJS_POINT4.z(%0)  */
+                /* |                 .set reorder */
+                /* |                 " : : "r"(&vec), "r"(dvp1), "r"(jmat1), "r"(mat2), "f"(jawtrans) :  */
+                /* |                 );  */
+                    ee_gpr r8 = {{0}}, r9 = {{0}};
+                    __typeof__((jawtrans) + 0) op0 = (jawtrans);
+                    __typeof__((mat2) + 0) op1 = (mat2);
+                    __typeof__((jmat1) + 0) op2 = (jmat1);
+                    __typeof__((dvp1) + 0) op3 = (dvp1);
+                    __typeof__((&vec) + 0) op4 = (&vec);
+                    r8.d[0] = EE_SEXT32(ee_fbits(EE_CVAR_GETF(op0)));
+                    vu_lqc2(5, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op1)) + (0)));
+                    vu_lqc2(6, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op1)) + (0x10)));
+                    vu_lqc2(7, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op1)) + (0x20)));
+                    vu_lqc2(8, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op1)) + (0x30)));
+                    vu_qmtc2(4, r8);
+                    vu_lqc2(9, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op2)) + (0)));
+                    vu_lqc2(10, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op2)) + (0x10)));
+                    vu_lqc2(11, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op2)) + (0x20)));
+                    vu_lqc2(12, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op2)) + (0x30)));
+                    vu_mul_bc(VACC, VF(5), VF(4)[0], 14);
+                    vu_madd_bc(VACC, VF(6), VF(0)[0], 14);
+                    vu_madd_bc(VACC, VF(7), VF(0)[0], 14);
+                    vu_madd_bc(VF(8), VF(8), VF(0)[3], 14);
+                    r8.d[0] = ee_ld64(((uintptr_t)(uint32_t)(EE_CVAR_GET(op3)) + (0x7)) - 7);
+                    r8.d[0] = ee_ld64(((uintptr_t)(uint32_t)(EE_CVAR_GET(op3)) + (0)));
+                    r9.d[0] = EE_SEXT32(*(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(op3)) + ((int)offsetof(NJS_POINT4, z)))));
+                    vu_mul_bc(VACC, VF(5), VF(9)[0], 14);
+                    vu_madd_bc(VACC, VF(6), VF(9)[1], 14);
+                    vu_madd_bc(VF(9), VF(7), VF(9)[2], 14);
+                    r8 = ee_pcpyld(r9, r8);
+                    vu_mul_bc(VACC, VF(5), VF(10)[0], 14);
+                    vu_madd_bc(VACC, VF(6), VF(10)[1], 14);
+                    vu_madd_bc(VF(10), VF(7), VF(10)[2], 14);
+                    vu_qmtc2(13, r8);
+                    vu_mul_bc(VACC, VF(5), VF(11)[0], 14);
+                    vu_madd_bc(VACC, VF(6), VF(11)[1], 14);
+                    vu_madd_bc(VF(11), VF(7), VF(11)[2], 14);
+                    vu_mul_bc(VACC, VF(5), VF(12)[0], 14);
+                    vu_madd_bc(VACC, VF(6), VF(12)[1], 14);
+                    vu_madd_bc(VACC, VF(7), VF(12)[2], 14);
+                    vu_madd_bc(VF(12), VF(8), VF(0)[3], 14);
+                    vu_mul_bc(VACC, VF(9), VF(13)[0], 14);
+                    vu_madd_bc(VACC, VF(10), VF(13)[1], 14);
+                    vu_madd_bc(VACC, VF(11), VF(13)[2], 14);
+                    vu_madd_bc(VF(18), VF(12), VF(0)[3], 14);
+                    r8 = vu_qmfc2(18);
+                    r9 = ee_pcpyud(r8, r8);
+                    ee_sd64(((uintptr_t)(uint32_t)(EE_CVAR_GET(op4)) + (0x7)) - 7, r8.d[0]);
+                    ee_sd64(((uintptr_t)(uint32_t)(EE_CVAR_GET(op4)) + (0)), r8.d[0]);
+                    *(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(op4)) + ((int)offsetof(NJS_POINT4, z)))) = (uint32_t)(r9.d[0]);
+                }
             }
             
             *(u_long128*)dvp1 = *(u_long128*)&vec;
@@ -1127,69 +1254,117 @@ void _fmCnkCalcEye(MASK_WORK* fm)
         { 
             njPushMatrix(NULL);
             
-            asm volatile
-            ("
-            .set noreorder
-                ldl         t0, 7(%1)
-                ldr         t0, 0(%1)
-                lw          t1, NJS_POINT3.z(%1)
-                
-                pcpyld      t0, t1, t0
-            
-                qmtc2       t0, vf4
-            
-                ldl         t2, 7(%3)
-                ldr         t2, 0(%3)
-                lw          t3, NJS_POINT3.z(%3)
-                
-                pcpyld      t2, t3, t2
-            
-                qmtc2       t2, vf5
-            
-                ldl         t4, 7(%5)
-                ldr         t4, 0(%5)
-                lw          t5, NJS_POINT3.z(%5)
-                
-                pcpyld      t4, t5, t4
-        
-                qmtc2       t4, vf6
-            
-                lqc2        vf7,     0(%0)
-                lqc2        vf8,  0x10(%0)
-                lqc2        vf9,  0x20(%0)
-                lqc2        vf10, 0x30(%0)
-                
-                vmulax.xyz  ACC,  vf7,  vf4
-                
-                vmadday.xyz ACC,  vf8,  vf4
-                vmaddaz.xyz ACC,  vf9,  vf4
-                vmaddw.xyz  vf11, vf10, vf0
-                
-                vmulax.xyz  ACC,  vf7,  vf5
-                
-                vmadday.xyz ACC,  vf8,  vf5
-                vmaddaz.xyz ACC,  vf9,  vf5
-                vmaddw.xyz  vf12, vf10, vf0
-                
-                vadd.xyz    vf7,  vf11, vf6
-                vsub.xyz    vf8,  vf7,  vf11
-                
-                qmfc2       t0, vf12
-                qmfc2       t2, vf8
-            
-                pcpyud      t1, t0, t0
-                pcpyud      t3, t2, t2
-            
-                sdl         t0, 7(%4)
-                sdr         t0, 0(%4)
-                sw          t1, NJS_POINT3.z(%4)
-                
-                sdl         t2, 7(%2)
-                sdr         t2, 0(%2)
-                sw          t3, NJS_POINT3.z(%2)
-            .set reorder
-            " : : "r"(&fm->eyemat[i]), "r"(&obj->pos), "r"(&q3), "r"(&t3), "r"(&r3), "r"(&fm->param.eye) : 
-            ); 
+            { /* translated from EE asm by agent mips2c; original kept below */
+            /* |  */
+            /* |             (" */
+            /* |             .set noreorder */
+            /* |                 ldl         t0, 7(%1) */
+            /* |                 ldr         t0, 0(%1) */
+            /* |                 lw          t1, NJS_POINT3.z(%1) */
+            /* |                  */
+            /* |                 pcpyld      t0, t1, t0 */
+            /* |              */
+            /* |                 qmtc2       t0, vf4 */
+            /* |              */
+            /* |                 ldl         t2, 7(%3) */
+            /* |                 ldr         t2, 0(%3) */
+            /* |                 lw          t3, NJS_POINT3.z(%3) */
+            /* |                  */
+            /* |                 pcpyld      t2, t3, t2 */
+            /* |              */
+            /* |                 qmtc2       t2, vf5 */
+            /* |              */
+            /* |                 ldl         t4, 7(%5) */
+            /* |                 ldr         t4, 0(%5) */
+            /* |                 lw          t5, NJS_POINT3.z(%5) */
+            /* |                  */
+            /* |                 pcpyld      t4, t5, t4 */
+            /* |          */
+            /* |                 qmtc2       t4, vf6 */
+            /* |              */
+            /* |                 lqc2        vf7,     0(%0) */
+            /* |                 lqc2        vf8,  0x10(%0) */
+            /* |                 lqc2        vf9,  0x20(%0) */
+            /* |                 lqc2        vf10, 0x30(%0) */
+            /* |                  */
+            /* |                 vmulax.xyz  ACC,  vf7,  vf4 */
+            /* |                  */
+            /* |                 vmadday.xyz ACC,  vf8,  vf4 */
+            /* |                 vmaddaz.xyz ACC,  vf9,  vf4 */
+            /* |                 vmaddw.xyz  vf11, vf10, vf0 */
+            /* |                  */
+            /* |                 vmulax.xyz  ACC,  vf7,  vf5 */
+            /* |                  */
+            /* |                 vmadday.xyz ACC,  vf8,  vf5 */
+            /* |                 vmaddaz.xyz ACC,  vf9,  vf5 */
+            /* |                 vmaddw.xyz  vf12, vf10, vf0 */
+            /* |                  */
+            /* |                 vadd.xyz    vf7,  vf11, vf6 */
+            /* |                 vsub.xyz    vf8,  vf7,  vf11 */
+            /* |                  */
+            /* |                 qmfc2       t0, vf12 */
+            /* |                 qmfc2       t2, vf8 */
+            /* |              */
+            /* |                 pcpyud      t1, t0, t0 */
+            /* |                 pcpyud      t3, t2, t2 */
+            /* |              */
+            /* |                 sdl         t0, 7(%4) */
+            /* |                 sdr         t0, 0(%4) */
+            /* |                 sw          t1, NJS_POINT3.z(%4) */
+            /* |                  */
+            /* |                 sdl         t2, 7(%2) */
+            /* |                 sdr         t2, 0(%2) */
+            /* |                 sw          t3, NJS_POINT3.z(%2) */
+            /* |             .set reorder */
+            /* |             " : : "r"(&fm->eyemat[i]), "r"(&obj->pos), "r"(&q3), "r"(&t3), "r"(&r3), "r"(&fm->param.eye) :  */
+            /* |             );  */
+                ee_gpr r8 = {{0}}, r9 = {{0}}, r10 = {{0}}, r11 = {{0}}, r12 = {{0}}, r13 = {{0}};
+                __typeof__((&obj->pos) + 0) op0 = (&obj->pos);
+                __typeof__((&t3) + 0) op1 = (&t3);
+                __typeof__((&fm->param.eye) + 0) op2 = (&fm->param.eye);
+                __typeof__((&fm->eyemat[i]) + 0) op3 = (&fm->eyemat[i]);
+                __typeof__((&r3) + 0) op4 = (&r3);
+                __typeof__((&q3) + 0) op5 = (&q3);
+                r8.d[0] = ee_ld64(((uintptr_t)(uint32_t)(EE_CVAR_GET(op0)) + (7)) - 7);
+                r8.d[0] = ee_ld64(((uintptr_t)(uint32_t)(EE_CVAR_GET(op0)) + (0)));
+                r9.d[0] = EE_SEXT32(*(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(op0)) + ((int)offsetof(NJS_POINT3, z)))));
+                r8 = ee_pcpyld(r9, r8);
+                vu_qmtc2(4, r8);
+                r10.d[0] = ee_ld64(((uintptr_t)(uint32_t)(EE_CVAR_GET(op1)) + (7)) - 7);
+                r10.d[0] = ee_ld64(((uintptr_t)(uint32_t)(EE_CVAR_GET(op1)) + (0)));
+                r11.d[0] = EE_SEXT32(*(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(op1)) + ((int)offsetof(NJS_POINT3, z)))));
+                r10 = ee_pcpyld(r11, r10);
+                vu_qmtc2(5, r10);
+                r12.d[0] = ee_ld64(((uintptr_t)(uint32_t)(EE_CVAR_GET(op2)) + (7)) - 7);
+                r12.d[0] = ee_ld64(((uintptr_t)(uint32_t)(EE_CVAR_GET(op2)) + (0)));
+                r13.d[0] = EE_SEXT32(*(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(op2)) + ((int)offsetof(NJS_POINT3, z)))));
+                r12 = ee_pcpyld(r13, r12);
+                vu_qmtc2(6, r12);
+                vu_lqc2(7, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op3)) + (0)));
+                vu_lqc2(8, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op3)) + (0x10)));
+                vu_lqc2(9, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op3)) + (0x20)));
+                vu_lqc2(10, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op3)) + (0x30)));
+                vu_mul_bc(VACC, VF(7), VF(4)[0], 14);
+                vu_madd_bc(VACC, VF(8), VF(4)[1], 14);
+                vu_madd_bc(VACC, VF(9), VF(4)[2], 14);
+                vu_madd_bc(VF(11), VF(10), VF(0)[3], 14);
+                vu_mul_bc(VACC, VF(7), VF(5)[0], 14);
+                vu_madd_bc(VACC, VF(8), VF(5)[1], 14);
+                vu_madd_bc(VACC, VF(9), VF(5)[2], 14);
+                vu_madd_bc(VF(12), VF(10), VF(0)[3], 14);
+                vu_add(VF(7), VF(11), VF(6), 14);
+                vu_sub(VF(8), VF(7), VF(11), 14);
+                r8 = vu_qmfc2(12);
+                r10 = vu_qmfc2(8);
+                r9 = ee_pcpyud(r8, r8);
+                r11 = ee_pcpyud(r10, r10);
+                ee_sd64(((uintptr_t)(uint32_t)(EE_CVAR_GET(op4)) + (7)) - 7, r8.d[0]);
+                ee_sd64(((uintptr_t)(uint32_t)(EE_CVAR_GET(op4)) + (0)), r8.d[0]);
+                *(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(op4)) + ((int)offsetof(NJS_POINT3, z)))) = (uint32_t)(r9.d[0]);
+                ee_sd64(((uintptr_t)(uint32_t)(EE_CVAR_GET(op5)) + (7)) - 7, r10.d[0]);
+                ee_sd64(((uintptr_t)(uint32_t)(EE_CVAR_GET(op5)) + (0)), r10.d[0]);
+                *(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(op5)) + ((int)offsetof(NJS_POINT3, z)))) = (uint32_t)(r11.d[0]);
+            }
 
             dx = q3.x;
             dy = q3.y;
@@ -1251,66 +1426,105 @@ void _fmCnkCalcTang(MASK_WORK* fm)
        
         for ( ; i > 0; i--) 
         { 
-            asm volatile
-            ("
-            .set noreorder
-                vmulw.xyzw vf4, vf0, vf0w
-                
-                vmr32.xyzw vf5, vf4
-                vmr32.xyzw vf6, vf5
-                vmr32.xyzw vf7, vf6
-                
-                sqc2       vf4, 0x30(%0)
-                sqc2       vf5, 0x20(%0)
-                sqc2       vf6, 0x10(%0)
-                sqc2       vf7,    0(%0)
-            .set reorder
-            " : : "r"(mat) : 
-            ); 
+            { /* translated from EE asm by agent mips2c; original kept below */
+            /* |  */
+            /* |             (" */
+            /* |             .set noreorder */
+            /* |                 vmulw.xyzw vf4, vf0, vf0w */
+            /* |                  */
+            /* |                 vmr32.xyzw vf5, vf4 */
+            /* |                 vmr32.xyzw vf6, vf5 */
+            /* |                 vmr32.xyzw vf7, vf6 */
+            /* |                  */
+            /* |                 sqc2       vf4, 0x30(%0) */
+            /* |                 sqc2       vf5, 0x20(%0) */
+            /* |                 sqc2       vf6, 0x10(%0) */
+            /* |                 sqc2       vf7,    0(%0) */
+            /* |             .set reorder */
+            /* |             " : : "r"(mat) :  */
+            /* |             );  */
+                __typeof__((mat) + 0) op0 = (mat);
+                vu_mul_bc(VF(4), VF(0), VF(0)[3], 15);
+                vu_mr32(VF(5), VF(4), 15);
+                vu_mr32(VF(6), VF(5), 15);
+                vu_mr32(VF(7), VF(6), 15);
+                vu_sqc2(4, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op0)) + (0x30)));
+                vu_sqc2(5, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op0)) + (0x20)));
+                vu_sqc2(6, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op0)) + (0x10)));
+                vu_sqc2(7, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op0)) + (0)));
+            }
             
             njRotateX(mat, (int)(182.04445f * (tangx * tang->rate)) & 0xFFFF);
             njRotateY(mat, (int)(182.04445f * (tangy * tang->rate)) & 0xFFFF);
             
             calc_ofs = tang->id * vofs;
             
-            asm volatile  
-            ("
-            .set noreorder
-                mfc1        t2, %2
-                
-                ldl         t0, 0x7(%0)
-                ldr         t0,   0(%0)
-                
-                lw          t1, 0x8(%0)
-                
-                pcpyld      t0, t1, t0
-            
-                qmtc2       t2, vf9
-                qmtc2       t0, vf4
-            
-                lqc2        vf5,    0(%3)
-                lqc2        vf6, 0x10(%3)
-                lqc2        vf7, 0x20(%3)
-                lqc2        vf8, 0x30(%3)
-                
-                vmulx.xyz   vf7,  vf7, vf9x
-                vmulax.xyz  ACC,  vf5, vf4x
-                
-                vmadday.xyz ACC,  vf6, vf4y
-                vmaddaz.xyz ACC,  vf7, vf4z
-                vmaddw.xyz  vf18, vf8, vf0w
-                
-                qmfc2       t0, vf18
-            
-                pcpyud      t1, t0, t0
-            
-                sdl         t0, 7(%1)
-                sdr         t0, 0(%1)
-                
-                sw          t1, 8(%1)
-            .set reorder
-            " : : "r"(&svp[calc_ofs]), "r"(&dvp[calc_ofs]), "f"(tangz), "r"(mat) : 
-            );
+            { /* translated from EE asm by agent mips2c; original kept below */
+            /* |  */
+            /* |             (" */
+            /* |             .set noreorder */
+            /* |                 mfc1        t2, %2 */
+            /* |                  */
+            /* |                 ldl         t0, 0x7(%0) */
+            /* |                 ldr         t0,   0(%0) */
+            /* |                  */
+            /* |                 lw          t1, 0x8(%0) */
+            /* |                  */
+            /* |                 pcpyld      t0, t1, t0 */
+            /* |              */
+            /* |                 qmtc2       t2, vf9 */
+            /* |                 qmtc2       t0, vf4 */
+            /* |              */
+            /* |                 lqc2        vf5,    0(%3) */
+            /* |                 lqc2        vf6, 0x10(%3) */
+            /* |                 lqc2        vf7, 0x20(%3) */
+            /* |                 lqc2        vf8, 0x30(%3) */
+            /* |                  */
+            /* |                 vmulx.xyz   vf7,  vf7, vf9x */
+            /* |                 vmulax.xyz  ACC,  vf5, vf4x */
+            /* |                  */
+            /* |                 vmadday.xyz ACC,  vf6, vf4y */
+            /* |                 vmaddaz.xyz ACC,  vf7, vf4z */
+            /* |                 vmaddw.xyz  vf18, vf8, vf0w */
+            /* |                  */
+            /* |                 qmfc2       t0, vf18 */
+            /* |              */
+            /* |                 pcpyud      t1, t0, t0 */
+            /* |              */
+            /* |                 sdl         t0, 7(%1) */
+            /* |                 sdr         t0, 0(%1) */
+            /* |                  */
+            /* |                 sw          t1, 8(%1) */
+            /* |             .set reorder */
+            /* |             " : : "r"(&svp[calc_ofs]), "r"(&dvp[calc_ofs]), "f"(tangz), "r"(mat) :  */
+            /* |             ); */
+                ee_gpr r8 = {{0}}, r9 = {{0}}, r10 = {{0}};
+                __typeof__((tangz) + 0) op0 = (tangz);
+                __typeof__((&svp[calc_ofs]) + 0) op1 = (&svp[calc_ofs]);
+                __typeof__((mat) + 0) op2 = (mat);
+                __typeof__((&dvp[calc_ofs]) + 0) op3 = (&dvp[calc_ofs]);
+                r10.d[0] = EE_SEXT32(ee_fbits(EE_CVAR_GETF(op0)));
+                r8.d[0] = ee_ld64(((uintptr_t)(uint32_t)(EE_CVAR_GET(op1)) + (0x7)) - 7);
+                r8.d[0] = ee_ld64(((uintptr_t)(uint32_t)(EE_CVAR_GET(op1)) + (0)));
+                r9.d[0] = EE_SEXT32(*(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(op1)) + (0x8))));
+                r8 = ee_pcpyld(r9, r8);
+                vu_qmtc2(9, r10);
+                vu_qmtc2(4, r8);
+                vu_lqc2(5, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op2)) + (0)));
+                vu_lqc2(6, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op2)) + (0x10)));
+                vu_lqc2(7, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op2)) + (0x20)));
+                vu_lqc2(8, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op2)) + (0x30)));
+                vu_mul_bc(VF(7), VF(7), VF(9)[0], 14);
+                vu_mul_bc(VACC, VF(5), VF(4)[0], 14);
+                vu_madd_bc(VACC, VF(6), VF(4)[1], 14);
+                vu_madd_bc(VACC, VF(7), VF(4)[2], 14);
+                vu_madd_bc(VF(18), VF(8), VF(0)[3], 14);
+                r8 = vu_qmfc2(18);
+                r9 = ee_pcpyud(r8, r8);
+                ee_sd64(((uintptr_t)(uint32_t)(EE_CVAR_GET(op3)) + (7)) - 7, r8.d[0]);
+                ee_sd64(((uintptr_t)(uint32_t)(EE_CVAR_GET(op3)) + (0)), r8.d[0]);
+                *(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(op3)) + (8))) = (uint32_t)(r9.d[0]);
+            }
             
             tang++; 
         }

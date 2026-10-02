@@ -1,6 +1,9 @@
 #include "../../../ps2/veronica/prog/ps2_sg_gd.h"
 #include "../../../ps2/veronica/prog/ps2_dvd_image.h"
 
+#ifdef RECVX_VITA
+#include "recvx_platform.h"
+#endif
 //#include <string.h> /* ERROR: causes linker to fail */
 
 static GDFS_HANDLE* __file_handle __attribute__((aligned(64)));
@@ -361,12 +364,19 @@ GDFS  gdFsOpen(const char *fname, GDFS_DIRREC gf_dirrec)
                    
                     __file_handle[j].fsize = __gdfs_dir_ent[i].fsize;
                     __file_handle[j].fsctsize = (__gdfs_dir_ent[i].fsize + 2047) / 2048;
+#ifdef RECVX_VITA
+                    RECVX_LOG("gdfs: open %s (%d bytes)", read_name, __gdfs_dir_ent[i].fsize);
+#endif
                    
                     return &__file_handle[j];
                 }
             }
         }
     }
+#ifdef RECVX_VITA
+    RECVX_LOG("gdfs: open %s failed", read_name);
+#endif
+    return NULL; /* fell off the end on the EE */
 }
 
 // 100% matching! 

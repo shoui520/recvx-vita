@@ -1,4 +1,7 @@
 #include <stdio.h>
+#ifdef RECVX_VITA
+#include "recvx_platform.h"
+#endif
 //#include <string.h>
 
 // EE library
@@ -204,6 +207,21 @@ Sint32 njUserMain(void)
     
     bhCheckSoftReset(); 
     
+#ifdef RECVX_VITA
+    {
+        static int last_tk = -1, last_ts = -1, last_stg = -1, last_rom = -1;
+        
+        if (sys->tk_flg != last_tk || sys->ts_flg != last_ts || sys->stg_no != last_stg || sys->rom_no != last_rom) 
+        {
+            last_tk = sys->tk_flg;
+            last_ts = sys->ts_flg;
+            last_stg = sys->stg_no;
+            last_rom = sys->rom_no;
+            
+            RECVX_LOG("sys: tk_flg=%08x ts_flg=%08x ss_flg=%08x stg=%d rom=%d", last_tk, last_ts, (int)sys->ss_flg, last_stg, last_rom);
+        }
+    }
+#endif
     return 0; 
 } 
 

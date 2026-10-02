@@ -15,6 +15,9 @@
 #include "../../../ps2/veronica/prog/ps2_NaColi.h"
 #include "../../../ps2/veronica/prog/effsub3.h"
 #include "../../../ps2/veronica/prog/main.h"
+#include "../../../ps2/veronica/prog/sdfunc.h"
+#include "../../../ps2/veronica/prog/MdlPut.h"
+#include "../../../ps2/veronica/prog/rutchk.h"
 
 // ENEMY: Bandersnatch 
 
@@ -2501,7 +2504,7 @@ int bhEne09_DmgCheck(BH_PWORK* epw)
             && !(WpnTab[epw->wpnr_no].flg & 0x20000000)
             && (plp->at_flg & 2))
         {
-            return;
+            return 0;
         }
         
         bhEne09_DamageAdd(epw);

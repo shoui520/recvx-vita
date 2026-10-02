@@ -39,7 +39,7 @@ static int Tim2CalcBufWidth(int psm, int w)
 }
 
 // 100% matching! 
-void Set_GsTex(TIM2_PICTUREHEADER* ph, unsigned long send_image_adr, unsigned long send_clut_adr)
+void Set_GsTex(TIM2_PICTUREHEADER* ph, u_long send_image_adr, u_long send_clut_adr)
 {
     unsigned int i; 
     
@@ -216,10 +216,10 @@ void StoreRenderTex(void* tex_adr)
 }
 
 // 99.82% matching
-int LoadToVram(unsigned long tbp, u_long128* addr, int tbw, int psm, int pos, int width, int height, int size) 
+int LoadToVram(u_long tbp, u_long128* addr, int tbw, int psm, int pos, int width, int height, int size) 
 {
-    static unsigned long data[64]; 
-    unsigned long* pBuff; 
+    static u_long data[64]; 
+    u_long* pBuff; 
     
     pBuff = UncAddr(data);
     
@@ -272,10 +272,10 @@ void *UncAddr(void *val)
 }
 
 // 99.83% matching
-int Send_1024_Clut_data(void* clt_adr, unsigned long send_clut_adr)
+int Send_1024_Clut_data(void* clt_adr, u_long send_clut_adr)
 {
-    static unsigned long data[64]; 
-    unsigned long* pBuff;        
+    static u_long data[64]; 
+    u_long* pBuff;        
     unsigned int loop;            
     unsigned int clt_lp;          
     u_long128* pClut;            
@@ -288,7 +288,7 @@ int Send_1024_Clut_data(void* clt_adr, unsigned long send_clut_adr)
         {
             D2_SyncTag();
 
-            pBuff = (unsigned long*)UNCACHED(data);
+            pBuff = (u_long*)UNCACHED(data);
             
             *pBuff++ = DMAcnt | 6;
             *pBuff++ = 0;
@@ -311,7 +311,7 @@ int Send_1024_Clut_data(void* clt_adr, unsigned long send_clut_adr)
             *pBuff++ = SCE_GIF_SET_TAG(64, SCE_GS_FALSE, SCE_GS_FALSE, 0, SCE_GIF_IMAGE, 0);
             *pBuff++ = 0;
             
-            *pBuff++ = (unsigned long)(DMAref | 64) | ((unsigned long)pClut << 32);
+            *pBuff++ = (u_long)(DMAref | 64) | ((u_long)pClut << 32);
             *pBuff++ = 0;
             
             *pBuff++ = DMAend | 2;
@@ -330,10 +330,11 @@ int Send_1024_Clut_data(void* clt_adr, unsigned long send_clut_adr)
             pClut += 4;
         }
     } 
+    return 0; /* fell off the end on the EE */
 } 
 
 // 100% matching! 
-int Send_Tim2_dataEx(void* tim2_top_adr, unsigned long send_image_adr, unsigned long send_clut_adr)
+int Send_Tim2_dataEx(void* tim2_top_adr, u_long send_image_adr, u_long send_clut_adr)
 {
     TIM2_PICTUREHEADER* pPhead;
 
@@ -369,7 +370,7 @@ int Send_Tim2_dataEx(void* tim2_top_adr, unsigned long send_image_adr, unsigned 
 }
 
 // 100% matching! 
-int Clut_Load_Func(TIM2_PICTUREHEADER* ph, unsigned long clut_addr) 
+int Clut_Load_Func(TIM2_PICTUREHEADER* ph, u_long clut_addr) 
 {
     u_long128* pClut;
     int loop; 
@@ -404,7 +405,7 @@ int Clut_Load_Func(TIM2_PICTUREHEADER* ph, unsigned long clut_addr)
 }
 
 // 100% matching!
-int P32_Image_Load(TIM2_PICTUREHEADER* ph, unsigned long image_addr) 
+int P32_Image_Load(TIM2_PICTUREHEADER* ph, u_long image_addr) 
 {
     u_long128* pImage;
     int w;            
@@ -451,7 +452,7 @@ int P32_Image_Load(TIM2_PICTUREHEADER* ph, unsigned long image_addr)
 #pragma divbyzerocheck on
 
 // 99.91% matching
-int Tim2_Image_Load(TIM2_PICTUREHEADER* ph, unsigned long image_addr)
+int Tim2_Image_Load(TIM2_PICTUREHEADER* ph, u_long image_addr)
 {
     static int psmtbl[3] = { SCE_GS_PSMCT32, SCE_GS_PSMT4, SCE_GS_PSMT8 };
     u_long128* pImage;   
@@ -553,13 +554,19 @@ void SyncPath()
     
     DPUT_D_PCR(DGET_D_PCR() & 0x2); 
     
-    asm volatile (bc0t label_0f1); 
+    { /* translated from EE asm by agent mips2c; original kept below */
+    /* |     asm volatile (bc0t label_0f1);  */
+        if (1) goto label_0f1;
+    }
 
 label_0b1:
-    asm volatile 
-    {
-        bc0f label_0b1
-        nop
+    { /* translated from EE asm by agent mips2c; original kept below */
+    /* |  */
+    /* |     { */
+    /* |         bc0f label_0b1 */
+    /* |         nop */
+    /* |     } */
+        if (0) goto label_0b1;
     }
 
 label_0f1:    
@@ -569,13 +576,19 @@ label_0f1:
 
     DPUT_D_PCR(DGET_D_PCR() & 0x4); 
     
-    asm volatile (bc0t label_0f2); 
+    { /* translated from EE asm by agent mips2c; original kept below */
+    /* |     asm volatile (bc0t label_0f2);  */
+        if (1) goto label_0f2;
+    }
 
 label_0b2:
-    asm volatile 
-    {
-        bc0f label_0b2
-        nop
+    { /* translated from EE asm by agent mips2c; original kept below */
+    /* |  */
+    /* |     { */
+    /* |         bc0f label_0b2 */
+    /* |         nop */
+    /* |     } */
+        if (0) goto label_0b2;
     }
     
 label_0f2:
@@ -583,13 +596,20 @@ label_0f2:
 
     while (DGET_VIF1_STAT() & 0x1F000003); 
 
-    asm volatile 
-    {
-        loop:
-        cfc2 a2, vi29
-        
-        andi v0, a2, 0x100
-        bnez v0, loop
+    { /* translated from EE asm by agent mips2c; original kept below */
+    /* |  */
+    /* |     { */
+    /* |         loop: */
+    /* |         cfc2 a2, vi29 */
+    /* |          */
+    /* |         andi v0, a2, 0x100 */
+    /* |         bnez v0, loop */
+    /* |     } */
+        ee_gpr r2 = {{0}}, r6 = {{0}};
+        L_SyncPath_loop:;
+        r6.d[0] = (uint64_t)vu_cfc2(29);
+        r2.d[0] = (r6.d[0]) & (uint64_t)(uint16_t)(0x100);
+        if ((int64_t)(r2.d[0]) != 0) goto L_SyncPath_loop;
     }
     
     while (DGET_GIF_STAT() & 0xC00); 
@@ -606,13 +626,19 @@ void D2_SyncTag()
     
     if ((DGET_D_PCR() & 0x4)) 
     { 
-        asm volatile (bc0t label_0f); 
+        { /* translated from EE asm by agent mips2c; original kept below */
+        /* |         asm volatile (bc0t label_0f);  */
+            if (1) goto label_0f;
+        }
     
     label_0b:
-        asm volatile 
-        {
-            bc0f label_0b
-            nop
+        { /* translated from EE asm by agent mips2c; original kept below */
+        /* |  */
+        /* |         { */
+        /* |             bc0f label_0b */
+        /* |             nop */
+        /* |         } */
+            if (0) goto label_0b;
         }
     }
 
@@ -623,13 +649,19 @@ label_0f:
 // 100% matching! 
 void loadImage(void* tags)
 {
-    asm volatile (bc0t label_0f); 
+    { /* translated from EE asm by agent mips2c; original kept below */
+    /* |     asm volatile (bc0t label_0f);  */
+        if (1) goto label_0f;
+    }
     
 label_0b:
-    asm volatile 
-    {
-        bc0f label_0b
-        nop
+    { /* translated from EE asm by agent mips2c; original kept below */
+    /* |  */
+    /* |     { */
+    /* |         bc0f label_0b */
+    /* |         nop */
+    /* |     } */
+        if (0) goto label_0b;
     }
 
 label_0f:

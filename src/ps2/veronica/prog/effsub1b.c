@@ -12,6 +12,7 @@
 #include "../../../ps2/veronica/prog/pwksub.h"
 #include "../../../ps2/veronica/prog/screen.h"
 #include "../../../ps2/veronica/prog/sdfunc.h"
+#include "../../../ps2/veronica/prog/cut.h"
 
 // 100% matching!
 void bhEff133(O_WRK* op)

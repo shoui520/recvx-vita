@@ -17,6 +17,8 @@
 #include "../../../ps2/veronica/prog/sdfunc.h"
 #include "../../../ps2/veronica/prog/system.h"
 #include "../../../ps2/veronica/prog/main.h"
+#include "../../../ps2/veronica/prog/cut.h"
+#include "../../../ps2/veronica/prog/ps2_texture.h"
 
 // 100% matching! 
 void bhInitRoom()

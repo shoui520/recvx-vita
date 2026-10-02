@@ -19,6 +19,10 @@
 #include "../../../ps2/veronica/prog/pwksub.h"
 #include "../../../ps2/veronica/prog/screen.h"
 #include "../../../ps2/veronica/prog/sdfunc.h"
+#include "../../../ps2/veronica/prog/itemview.h"
+#include "../../../ps2/veronica/prog/ps2_loadtim2.h"
+#include "../../../ps2/veronica/prog/player.h"
+#include "../../../ps2/veronica/prog/flag.h"
 
 #pragma optimization_level 4
 
@@ -2572,6 +2576,10 @@ void KazuSet(S_WORK* st, unsigned char flg)
 
     itemid = 0;
     
+#ifdef RECVX_VITA
+    /* flg 1 outside the item box leaves both unset; on the PS2 the loop happened not to run */
+    num1 = num2 = 0;
+#endif
     if ((sys->gm_flg & 0x8000000))
     { 
         max = 10;
@@ -3572,7 +3580,7 @@ void StatusMain()
         
         sitem.keep = sitem.keepbackup;
         
-        memset(sitem.keep, NULL, 0x20000);
+        memset(sitem.keep, 0, 0x20000);
         
         swork.statusflg &= ~0x400000;
     }

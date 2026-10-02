@@ -11,6 +11,50 @@
 
 <img src="https://i.imgur.com/FreVpxO.png"/> 
 
+## PS Vita port
+
+This fork builds the decompiled game as a native PS Vita application. The game code in `src/` and `include/` is the decompilation with portability changes: inline EE assembly is translated to C (the original assembly is kept beside it as a comment) and other fixes are marked `RECVX_VITA`. Because of the assembly translation, these sources no longer produce the matching PS2 ELF; use upstream [recvx-decomp](https://github.com/AshfordFamily/recvx-decomp) for that. The PS2 hardware is replaced by a platform layer in `platform/`:
+
+- `platform/gs`: GS and VU1 rendering on the GPU through vitaGL (VU1 microprograms become shaders)
+- `platform/iop`: the IOP side, including a reimplementation of the TSNDDRV sound driver
+- `platform/ps2compat`: EE kernel, DMA, CD-ROM, memory card, pad and VU0 replacements
+- `platform/vita`: startup, logging and movie playback
+
+The port is early work: it boots through the title screen into gameplay, but FMVs are not played yet, some in-game models and text are missing, and 3D scenes run slowly.
+
+### Building the VPK
+
+Requirements: [VitaSDK](https://vitasdk.org) with the vdpm packages `vitaGL`, `vitashark`, `SceShaccCgExt`, `mathneon` and `taihen`, and CMake 3.16 or newer. The PS2 SDK and the MWCC compiler are not needed.
+
+```sh
+git clone https://github.com/shoui520/recvx-vita
+cd recvx-vita
+git submodule update --init include/recvx-decomp-cri include/recvx-decomp-katana
+export VITASDK=/usr/local/vitasdk   # your VitaSDK install
+cmake -S . -B build-vita
+cmake --build build-vita -j
+```
+
+The package is `build-vita/recvx.vpk` (title ID `RECVX0001`).
+
+### Running
+
+1. Install `recvx.vpk` with VitaShell.
+2. Copy an image of your own US disc (SLUS-20184) to `ux0:data/recvx/recvx.iso`.
+3. vitaGL compiles shaders at runtime, so `ur0:data/libshacccg.suprx` must be present (see the vitaGL documentation).
+
+Saves go to `ux0:data/recvx/mc0`, and a log is written to `ux0:data/recvx/log.txt`. The Vita has no L2/R2/L3/R3: L2/R2 are the left/right halves of the rear touchpad, L3/R3 the left/right halves of the front screen.
+
+For testing, files in `ux0:data/recvx` switch on debug hooks; none exist by default:
+
+| File | Effect |
+| --- | --- |
+| `boot.txt` containing `newgame` | skip the memory card check and title menu and start a new game |
+| `input.txt` | scripted pad input, one `FRAME BUTTON[+BUTTON] [HOLD]` per line |
+| `watchdog.txt` | crash on purpose (for a core dump) when no frame is shown for 15 s |
+| `dumpat.txt` | crash on purpose at the given frame number |
+| `capture.txt` | frame numbers to save as `frame-N.ppm` |
+
 ## About
 
 > [!IMPORTANT]

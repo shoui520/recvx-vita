@@ -9,7 +9,7 @@ void	njDrawSprite2D( NJS_SPRITE *sp, Int n, Float pri, Uint32 attr )
     int (*bp)[4];
     int col[4];
     float colf[4];
-    unsigned long prim;
+    u_long prim;
     float co, si;
     float xx;
     float xx1, xx2, xx3; // not from DWARF

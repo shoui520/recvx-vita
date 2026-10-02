@@ -8,7 +8,11 @@
 #include <sifrpc.h>
 
 // TODO: move this define somewhere else
+#ifdef RECVX_VITA
+#define UNCBASE 0
+#else
 #define UNCBASE 0x20000000
+#endif
 
 // TODO: use this
 typedef enum

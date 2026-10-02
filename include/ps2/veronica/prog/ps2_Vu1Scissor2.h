@@ -3,7 +3,7 @@
 
 #include "types.h"
 
-void DrawScissorPolygonOpaque2(int count, unsigned long ulType);
+void DrawScissorPolygonOpaque2(int count, u_long ulType);
 void InitNodeArraySet2();
 unsigned int _Clip_ViewVolume2(NJS_POINT4* vec);
 unsigned int _Get_ClipViewVolume2();

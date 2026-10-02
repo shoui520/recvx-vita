@@ -9,6 +9,7 @@
 #include "../../../ps2/veronica/prog/subpl.h"
 #include "../../../ps2/veronica/prog/MdlPut.h"
 #include "../../../ps2/veronica/prog/eneset.h"
+#include "../../../ps2/veronica/prog/effect.h"
 
 // ENEMY: Baby Black Widow 
 

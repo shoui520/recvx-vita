@@ -12,6 +12,9 @@
 #include "../../../ps2/veronica/prog/eneset.h"
 #include "../../../ps2/veronica/prog/njplus.h"
 #include "../../../ps2/veronica/prog/effect.h"
+#include "../../../ps2/veronica/prog/sdfunc.h"
+#include "../../../ps2/veronica/prog/MdlPut.h"
+#include "../../../ps2/veronica/prog/zonzon.h"
 
 // ENEMY: Moth 
 

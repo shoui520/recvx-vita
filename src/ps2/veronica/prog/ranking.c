@@ -13,6 +13,7 @@
 #include "../../../ps2/veronica/prog/sub1.h"
 #include "../../../ps2/veronica/prog/system.h"
 #include "../../../ps2/veronica/prog/main.h"
+#include "../../../ps2/veronica/prog/ps2_texture.h"
 
 void bhDispFontEx(NJS_POINT2* pos, int code, unsigned int argb, float pri); // see message.h for more info about why this is being included here
 

@@ -16,11 +16,18 @@ void CalcPs2ZbuffAB()
 // 100% matching! 
 void sceVu0ITOF12Vector(sceVu0FVECTOR v0, sceVu0IVECTOR v1)
 {
-	asm __volatile__("
-	lqc2    vf4,0x0(%1)
-	vitof12.xyzw vf5,vf4
-	sqc2    vf5,0x0(%0)
-	": : "r" (v0) , "r" (v1));
+	{ /* translated from EE asm by agent mips2c; original kept below */
+	/* | (" */
+	/* | 	lqc2    vf4,0x0(%1) */
+	/* | 	vitof12.xyzw vf5,vf4 */
+	/* | 	sqc2    vf5,0x0(%0) */
+	/* | 	": : "r" (v0) , "r" (v1)); */
+	    __typeof__((v1) + 0) op0 = (v1);
+	    __typeof__((v0) + 0) op1 = (v0);
+	    vu_lqc2(4, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op0)) + (0x0)));
+	    vu_itof(VF(5), VF(4), 15, (1.0f / 4096.0f));
+	    vu_sqc2(5, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op1)) + (0x0)));
+	}
 }
 
 // 100% matching! 
@@ -29,7 +36,7 @@ void	njDrawLine2D(NJS_POINT2COL *p, Int n, Float pri, Uint32 attr)
     float buff[32][4];  
     float (* bp)[4];  
     unsigned int i;    
-    unsigned long prim; 
+    u_long prim; 
 
     if ((attr & 0x2)) 
     {
@@ -95,7 +102,7 @@ void	njDrawPolygon2D(NJS_POINT2COL *p, Int n, Float pri, Uint32 attr)
     float buff[32][4];  
     float (* bp)[4];  
     unsigned int i;    
-    unsigned long prim; 
+    u_long prim; 
 
     if (pri > -1.0f) 
     {
@@ -170,7 +177,7 @@ void njDrawPolygon2DM(NJS_POINT2COL* p, int n, float pri, unsigned int attr)
     float buff[32][4];  
     float (* bp)[4];  
     unsigned int i;    
-    unsigned long prim; 
+    u_long prim; 
 
     if (pri > -1.0f) 
     {

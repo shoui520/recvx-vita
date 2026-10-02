@@ -4,4 +4,5 @@
 Uint32 syTmrGetCount(void)
 {
 
+    return 0; /* fell off the end on the EE */
 }

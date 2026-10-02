@@ -134,7 +134,7 @@ int bhSetMemPvpTexture(NJS_TEXLIST* tlp, unsigned char* datp, int offset)
         case MAKE_MAGIC('P', 'L', 'I', 0):
             if (sz != 0) 
             { 
-                palnum = *((int*)ap)++; 
+                palnum = *(int*)ap; ap += sizeof(int); 
                 
                 for (lop = 0; lop < palnum; lop++, ap += 8) 
                 { 

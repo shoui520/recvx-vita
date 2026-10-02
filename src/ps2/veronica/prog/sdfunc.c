@@ -656,7 +656,7 @@ int LoadSoundPackFile(char* SpqFile)
         }
         else 
         {
-            memcpy(Room_SoundEnv, &pSdReadBuf[pSpqHeader->Offset], sizeof(RM_SNDENV)); 
+            memcpy(&Room_SoundEnv, &pSdReadBuf[pSpqHeader->Offset], sizeof(RM_SNDENV)); 
             
             FxLevelTimer = 16;
             
@@ -1441,6 +1441,7 @@ int GetPlayerActionSeSlotNo(int Type, int Id)
     case 6:
         return 6;
     }
+    return 0; /* fell off the end on the EE */
 }
 
 // 100% matching!

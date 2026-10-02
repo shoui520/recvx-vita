@@ -23,6 +23,7 @@
 #include "../../../ps2/veronica/prog/ps2_NinjaCnk.h"
 #include "../../../ps2/veronica/prog/ps2_texture.h"
 #include "../../../ps2/veronica/prog/main.h"
+#include "../../../ps2/veronica/prog/ps2_dummy.h"
 
 typedef void (*bhJumpEffect_proc)(O_WRK*);
 typedef void (*bhJumpEffect0_proc)(O_WRK*);
@@ -1772,7 +1773,7 @@ void bhDrawTrsEffect2D(unsigned int* owp, int ct)
 } 
 
 // 100% matching!
-static void bhDrawThunder()
+void bhDrawThunder()
 {
     NJS_POLYGON_VTX* p; 
     int i;              

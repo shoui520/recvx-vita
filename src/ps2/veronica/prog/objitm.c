@@ -15,6 +15,7 @@
 #include "../../../ps2/veronica/prog/sdfunc.h"
 #include "../../../ps2/veronica/prog/system.h"
 #include "../../../ps2/veronica/prog/weapon.h"
+#include "../../../ps2/veronica/prog/player.h"
 
 #pragma optimization_level 4
 
@@ -1383,155 +1384,250 @@ void bhObj005(O_WRK* op)
         
         nb = op->ct2;
         
-        asm volatile 
-        ("
-        .set noreorder
-            vcallms    VU0_WAVE_INIT
-            
-            srl        t0,  %0, 1
-            
-            muli       $t1, %6, 4
-            
-            bnez       %5, l_00285C50 
-            nop
-        
-            lwc1       f1,   0x4(%1)
-            lw         t2,     0(%1)
-            
-            addi       t0, t0, -1 
-            
-            lwc1       f2,     0(t2)
-            
-            addi       %2, %2, 32 
-
-            add.s      f1, f1, f2
-
-            addi       %1, %1, 32 
-            
-            swc1       f1, -0x1C(%2)
-            
-        l_00285C50:
-            lw         t2, 0(%1)
-            
-            addi       %2, %2, 16 
-            addi       %1, %1, 16 
-            
-            addi       t3, t2, -4 
-
-            add        t4, t2, t1 
-
-            addi       t5, t2, 4 
-        
-            sub        t6, t2, t1 
-            
-        l_00285C6C:
-            lw         t3,    0(t3)
-            lw         t4,    0(t4)
-            lw         t5,    0(t5)
-            lw         t6,    0(t6)
-            
-            qmtc2      t3, vf6
-            qmtc2      t4, vf7
-            qmtc2      t5, vf8
-            qmtc2      t6, vf9
-        
-            vcallms    VU0_WAVE_CALC
-            
-            lw         t7, 0x10(%1)
-            lwc1       f1, 0x14(%1)
-            lw         t2, 0x30(%1)
-            
-            lwc1       f2,    0(t7)
-            
-            addi       t3, t2, -4 
-            
-            add        t4, t2, t1 
-            add.s      f1, f1, f2
-
-            addi       t5, t2, 4 
-        
-            sub        t6, t2, t1 
-            
-            vwaitq
-            
-            vmulq.xyz  vf10, vf10, Q
-            
-            addi       t0, t0, -1 
-            
-            swc1       f1, 0x14(%2)
-            
-            addi       %1, %1, 64 
-            
-            sqc2       vf10,  0(%2)
-            
-            bnez       t0, l_00285C6C
-        
-            addi       %2, %2, 64 
-        .set reorder
-        " : : "r"(nb), "r"(pCnk), "r"(pOrg), "r"(sys->gfrm_ct), "r"(xp), "r"(j), "r"(sys->wt_zp) : "$s2", "$s5", "memory" 
-        ); 
+        { /* translated from EE asm by agent mips2c; original kept below */
+        /* |  */
+        /* |         (" */
+        /* |         .set noreorder */
+        /* |             vcallms    VU0_WAVE_INIT */
+        /* |              */
+        /* |             srl        t0,  %0, 1 */
+        /* |              */
+        /* |             muli       $t1, %6, 4 */
+        /* |              */
+        /* |             bnez       %5, l_00285C50  */
+        /* |             nop */
+        /* |          */
+        /* |             lwc1       f1,   0x4(%1) */
+        /* |             lw         t2,     0(%1) */
+        /* |              */
+        /* |             addi       t0, t0, -1  */
+        /* |              */
+        /* |             lwc1       f2,     0(t2) */
+        /* |              */
+        /* |             addi       %2, %2, 32  */
+        /* |  */
+        /* |             add.s      f1, f1, f2 */
+        /* |  */
+        /* |             addi       %1, %1, 32  */
+        /* |              */
+        /* |             swc1       f1, -0x1C(%2) */
+        /* |              */
+        /* |         l_00285C50: */
+        /* |             lw         t2, 0(%1) */
+        /* |              */
+        /* |             addi       %2, %2, 16  */
+        /* |             addi       %1, %1, 16  */
+        /* |              */
+        /* |             addi       t3, t2, -4  */
+        /* |  */
+        /* |             add        t4, t2, t1  */
+        /* |  */
+        /* |             addi       t5, t2, 4  */
+        /* |          */
+        /* |             sub        t6, t2, t1  */
+        /* |              */
+        /* |         l_00285C6C: */
+        /* |             lw         t3,    0(t3) */
+        /* |             lw         t4,    0(t4) */
+        /* |             lw         t5,    0(t5) */
+        /* |             lw         t6,    0(t6) */
+        /* |              */
+        /* |             qmtc2      t3, vf6 */
+        /* |             qmtc2      t4, vf7 */
+        /* |             qmtc2      t5, vf8 */
+        /* |             qmtc2      t6, vf9 */
+        /* |          */
+        /* |             vcallms    VU0_WAVE_CALC */
+        /* |              */
+        /* |             lw         t7, 0x10(%1) */
+        /* |             lwc1       f1, 0x14(%1) */
+        /* |             lw         t2, 0x30(%1) */
+        /* |              */
+        /* |             lwc1       f2,    0(t7) */
+        /* |              */
+        /* |             addi       t3, t2, -4  */
+        /* |              */
+        /* |             add        t4, t2, t1  */
+        /* |             add.s      f1, f1, f2 */
+        /* |  */
+        /* |             addi       t5, t2, 4  */
+        /* |          */
+        /* |             sub        t6, t2, t1  */
+        /* |              */
+        /* |             vwaitq */
+        /* |              */
+        /* |             vmulq.xyz  vf10, vf10, Q */
+        /* |              */
+        /* |             addi       t0, t0, -1  */
+        /* |              */
+        /* |             swc1       f1, 0x14(%2) */
+        /* |              */
+        /* |             addi       %1, %1, 64  */
+        /* |              */
+        /* |             sqc2       vf10,  0(%2) */
+        /* |              */
+        /* |             bnez       t0, l_00285C6C */
+        /* |          */
+        /* |             addi       %2, %2, 64  */
+        /* |         .set reorder */
+        /* |         " : : "r"(nb), "r"(pCnk), "r"(pOrg), "r"(sys->gfrm_ct), "r"(xp), "r"(j), "r"(sys->wt_zp) : "$s2", "$s5", "memory"  */
+        /* |         );  */
+            ee_gpr r8 = {{0}}, r9 = {{0}}, r10 = {{0}}, r11 = {{0}}, r12 = {{0}}, r13 = {{0}}, r14 = {{0}}, r15 = {{0}};
+            float f1 = 0, f2 = 0;
+            __typeof__((nb) + 0) op0 = (nb);
+            __typeof__((sys->wt_zp) + 0) op1 = (sys->wt_zp);
+            __typeof__((j) + 0) op2 = (j);
+            __typeof__((pCnk) + 0) op3 = (pCnk);
+            __typeof__((pOrg) + 0) op4 = (pOrg);
+            VU0_CALLMS(VU0_WAVE_INIT);
+            r8.d[0] = EE_SEXT32((uint32_t)(EE_CVAR_GET(op0)) >> 1);
+            r9.d[0] = EE_SEXT32((uint32_t)((int32_t)(EE_CVAR_GET(op1)) * (int32_t)(4)));
+            if ((int64_t)(EE_CVAR_GET(op2)) != 0) goto L_bhObj005_l_00285C50;
+            f1 = ee_bitsf(*(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(op3)) + (0x4))));
+            r10.d[0] = EE_SEXT32(*(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(op3)) + (0))));
+            r8.d[0] = EE_SEXT32((uint32_t)(r8.d[0]) + (uint32_t)(-1));
+            f2 = ee_bitsf(*(uint32_t *)(((uintptr_t)(uint32_t)(r10.d[0]) + (0))));
+            EE_CVAR_SET(op4, EE_SEXT32((uint32_t)(EE_CVAR_GET(op4)) + (uint32_t)(32)));
+            f1 = f1 + f2;
+            EE_CVAR_SET(op3, EE_SEXT32((uint32_t)(EE_CVAR_GET(op3)) + (uint32_t)(32)));
+            *(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(op4)) + (-0x1C))) = ee_fbits(f1);
+            L_bhObj005_l_00285C50:;
+            r10.d[0] = EE_SEXT32(*(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(op3)) + (0))));
+            EE_CVAR_SET(op4, EE_SEXT32((uint32_t)(EE_CVAR_GET(op4)) + (uint32_t)(16)));
+            EE_CVAR_SET(op3, EE_SEXT32((uint32_t)(EE_CVAR_GET(op3)) + (uint32_t)(16)));
+            r11.d[0] = EE_SEXT32((uint32_t)(r10.d[0]) + (uint32_t)(-4));
+            r12.d[0] = EE_SEXT32((uint32_t)(r10.d[0]) + (uint32_t)(r9.d[0]));
+            r13.d[0] = EE_SEXT32((uint32_t)(r10.d[0]) + (uint32_t)(4));
+            r14.d[0] = EE_SEXT32((uint32_t)(r10.d[0]) - (uint32_t)(r9.d[0]));
+            L_bhObj005_l_00285C6C:;
+            r11.d[0] = EE_SEXT32(*(uint32_t *)(((uintptr_t)(uint32_t)(r11.d[0]) + (0))));
+            r12.d[0] = EE_SEXT32(*(uint32_t *)(((uintptr_t)(uint32_t)(r12.d[0]) + (0))));
+            r13.d[0] = EE_SEXT32(*(uint32_t *)(((uintptr_t)(uint32_t)(r13.d[0]) + (0))));
+            r14.d[0] = EE_SEXT32(*(uint32_t *)(((uintptr_t)(uint32_t)(r14.d[0]) + (0))));
+            vu_qmtc2(6, r11);
+            vu_qmtc2(7, r12);
+            vu_qmtc2(8, r13);
+            vu_qmtc2(9, r14);
+            VU0_CALLMS(VU0_WAVE_CALC);
+            r15.d[0] = EE_SEXT32(*(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(op3)) + (0x10))));
+            f1 = ee_bitsf(*(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(op3)) + (0x14))));
+            r10.d[0] = EE_SEXT32(*(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(op3)) + (0x30))));
+            f2 = ee_bitsf(*(uint32_t *)(((uintptr_t)(uint32_t)(r15.d[0]) + (0))));
+            r11.d[0] = EE_SEXT32((uint32_t)(r10.d[0]) + (uint32_t)(-4));
+            r12.d[0] = EE_SEXT32((uint32_t)(r10.d[0]) + (uint32_t)(r9.d[0]));
+            f1 = f1 + f2;
+            r13.d[0] = EE_SEXT32((uint32_t)(r10.d[0]) + (uint32_t)(4));
+            r14.d[0] = EE_SEXT32((uint32_t)(r10.d[0]) - (uint32_t)(r9.d[0]));
+            vu_mul_bc(VF(10), VF(10), VQ, 14);
+            r8.d[0] = EE_SEXT32((uint32_t)(r8.d[0]) + (uint32_t)(-1));
+            *(uint32_t *)(((uintptr_t)(uint32_t)(EE_CVAR_GET(op4)) + (0x14))) = ee_fbits(f1);
+            EE_CVAR_SET(op3, EE_SEXT32((uint32_t)(EE_CVAR_GET(op3)) + (uint32_t)(64)));
+            vu_sqc2(10, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op4)) + (0)));
+            { int c_ = ((int64_t)(r8.d[0]) != 0); EE_CVAR_SET(op4, EE_SEXT32((uint32_t)(EE_CVAR_GET(op4)) + (uint32_t)(64))); if (c_) goto L_bhObj005_l_00285C6C; }
+        }
      
-        asm volatile 
-        (" 
-            
-            srl        t0, %0, 2
-            
-            mfc1       t1, %2
-            
-            srl        t2, t0, 2
-            
-            qmtc2      t1, vf4
-            
-            lqc2       vf5,    0(%1)
-            lqc2       vf6, 0x10(%1)
-            
-        l_00285D1C:
-            lqc2       vf7, 0x20(%1)
-            lqc2       vf8, 0x30(%1)
-            
-            vsubx.xyzw vf9,  vf5, vf4x
-            vsubx.xyzw vf10, vf6, vf4x
-            vsubx.xyzw vf11, vf7, vf4x
-            vsubx.xyzw vf12, vf8, vf4x
-            
-            vmaxx.xyzw vf9,  vf9,  vf0x
-            vmaxx.xyzw vf10, vf10, vf0x
-            vmaxx.xyzw vf11, vf11, vf0x
-            vmaxx.xyzw vf12, vf12, vf0x
-            
-            sqc2       vf9,     0(%1)
-            sqc2       vf10, 0x10(%1)
-            sqc2       vf11, 0x20(%1)
-            sqc2       vf12, 0x30(%1)
-            
-            addi       t2, t2, -1 
-            addi       %1, %1, 64 
-            
-            lqc2       vf5,    0(%1)
-            
-            bnez       t2, l_00285D1C
-        
-            lqc2       vf6, 0x10(%1)
-            
-            andi       t0, t0, 0x3
-        
-        l_00285D6C:
-            bnez       t0, exit
-        
-            addi       t0, t0, -1 
-            
-            vsubx.xyzw vf9, vf5, vf4x
-            
-            addi       %1, %1, 16 
-            
-            vmaxx.xyzw vf9, vf9, vf0x
-            
-            lqc2       vf5, 0(%1)
-            
-            b          l_00285D6C
-        
-        " : : "r"(sys->wt_nbpt), "r"(sys->wt_wvp), "f"(0.2f) : "$t0", "$t1", "$t2", "memory" 
-        );  
+        { /* translated from EE asm by agent mips2c; original kept below */
+        /* |  */
+        /* |         ("  */
+        /* |              */
+        /* |             srl        t0, %0, 2 */
+        /* |              */
+        /* |             mfc1       t1, %2 */
+        /* |              */
+        /* |             srl        t2, t0, 2 */
+        /* |              */
+        /* |             qmtc2      t1, vf4 */
+        /* |              */
+        /* |             lqc2       vf5,    0(%1) */
+        /* |             lqc2       vf6, 0x10(%1) */
+        /* |              */
+        /* |         l_00285D1C: */
+        /* |             lqc2       vf7, 0x20(%1) */
+        /* |             lqc2       vf8, 0x30(%1) */
+        /* |              */
+        /* |             vsubx.xyzw vf9,  vf5, vf4x */
+        /* |             vsubx.xyzw vf10, vf6, vf4x */
+        /* |             vsubx.xyzw vf11, vf7, vf4x */
+        /* |             vsubx.xyzw vf12, vf8, vf4x */
+        /* |              */
+        /* |             vmaxx.xyzw vf9,  vf9,  vf0x */
+        /* |             vmaxx.xyzw vf10, vf10, vf0x */
+        /* |             vmaxx.xyzw vf11, vf11, vf0x */
+        /* |             vmaxx.xyzw vf12, vf12, vf0x */
+        /* |              */
+        /* |             sqc2       vf9,     0(%1) */
+        /* |             sqc2       vf10, 0x10(%1) */
+        /* |             sqc2       vf11, 0x20(%1) */
+        /* |             sqc2       vf12, 0x30(%1) */
+        /* |              */
+        /* |             addi       t2, t2, -1  */
+        /* |             addi       %1, %1, 64  */
+        /* |              */
+        /* |             lqc2       vf5,    0(%1) */
+        /* |              */
+        /* |             bnez       t2, l_00285D1C */
+        /* |          */
+        /* |             lqc2       vf6, 0x10(%1) */
+        /* |              */
+        /* |             andi       t0, t0, 0x3 */
+        /* |          */
+        /* |         l_00285D6C: */
+        /* |             bnez       t0, exit */
+        /* |          */
+        /* |             addi       t0, t0, -1  */
+        /* |              */
+        /* |             vsubx.xyzw vf9, vf5, vf4x */
+        /* |              */
+        /* |             addi       %1, %1, 16  */
+        /* |              */
+        /* |             vmaxx.xyzw vf9, vf9, vf0x */
+        /* |              */
+        /* |             lqc2       vf5, 0(%1) */
+        /* |              */
+        /* |             b          l_00285D6C */
+        /* |          */
+        /* |         " : : "r"(sys->wt_nbpt), "r"(sys->wt_wvp), "f"(0.2f) : "$t0", "$t1", "$t2", "memory"  */
+        /* |         );   */
+            ee_gpr r8 = {{0}}, r9 = {{0}}, r10 = {{0}};
+            __typeof__((sys->wt_nbpt) + 0) op0 = (sys->wt_nbpt);
+            __typeof__((0.2f) + 0) op1 = (0.2f);
+            __typeof__((sys->wt_wvp) + 0) op2 = (sys->wt_wvp);
+            r8.d[0] = EE_SEXT32((uint32_t)(EE_CVAR_GET(op0)) >> 2);
+            r9.d[0] = EE_SEXT32(ee_fbits(EE_CVAR_GETF(op1)));
+            r10.d[0] = EE_SEXT32((uint32_t)(r8.d[0]) >> 2);
+            vu_qmtc2(4, r9);
+            vu_lqc2(5, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op2)) + (0)));
+            vu_lqc2(6, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op2)) + (0x10)));
+            L_bhObj005_l_00285D1C:;
+            vu_lqc2(7, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op2)) + (0x20)));
+            vu_lqc2(8, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op2)) + (0x30)));
+            vu_sub_bc(VF(9), VF(5), VF(4)[0], 15);
+            vu_sub_bc(VF(10), VF(6), VF(4)[0], 15);
+            vu_sub_bc(VF(11), VF(7), VF(4)[0], 15);
+            vu_sub_bc(VF(12), VF(8), VF(4)[0], 15);
+            vu_max_bc(VF(9), VF(9), VF(0)[0], 15);
+            vu_max_bc(VF(10), VF(10), VF(0)[0], 15);
+            vu_max_bc(VF(11), VF(11), VF(0)[0], 15);
+            vu_max_bc(VF(12), VF(12), VF(0)[0], 15);
+            vu_sqc2(9, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op2)) + (0)));
+            vu_sqc2(10, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op2)) + (0x10)));
+            vu_sqc2(11, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op2)) + (0x20)));
+            vu_sqc2(12, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op2)) + (0x30)));
+            r10.d[0] = EE_SEXT32((uint32_t)(r10.d[0]) + (uint32_t)(-1));
+            EE_CVAR_SET(op2, EE_SEXT32((uint32_t)(EE_CVAR_GET(op2)) + (uint32_t)(64)));
+            vu_lqc2(5, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op2)) + (0)));
+            if ((int64_t)(r10.d[0]) != 0) goto L_bhObj005_l_00285D1C;
+            vu_lqc2(6, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op2)) + (0x10)));
+            r8.d[0] = (r8.d[0]) & (uint64_t)(uint16_t)(0x3);
+            L_bhObj005_l_00285D6C:;
+            if ((int64_t)(r8.d[0]) != 0) goto exit;
+            r8.d[0] = EE_SEXT32((uint32_t)(r8.d[0]) + (uint32_t)(-1));
+            vu_sub_bc(VF(9), VF(5), VF(4)[0], 15);
+            EE_CVAR_SET(op2, EE_SEXT32((uint32_t)(EE_CVAR_GET(op2)) + (uint32_t)(16)));
+            vu_max_bc(VF(9), VF(9), VF(0)[0], 15);
+            vu_lqc2(5, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op2)) + (0)));
+            goto L_bhObj005_l_00285D6C;
+        }
             
     exit:
         break;

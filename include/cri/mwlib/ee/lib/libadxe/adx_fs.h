@@ -5,7 +5,8 @@
 #include <../../../recvx-decomp-cri/cri/mwlib/include/sj.h>
 #include <../../../recvx-decomp-cri/cri/mwlib/include/cri_adxf.h>
 
-#define REG_RCNT0_COUNT     (volatile int *)0x10000000
+#include "eeregs.h"
+#define REG_RCNT0_COUNT     ((volatile int *)T0_COUNT)
 
 #define getRcnt0CountShort() *REG_RCNT0_COUNT & 0xFFFF
 

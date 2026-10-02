@@ -11,6 +11,8 @@
 #include "../../../ps2/veronica/prog/ps2_dummy.h"
 #include "../../../ps2/veronica/prog/ps2_texture.h"
 #include "../../../ps2/veronica/prog/sdfunc.h"
+#include "../../../ps2/veronica/prog/adxwrap.h"
+#include "../../../ps2/veronica/prog/screen.h"
 
 #pragma optimization_level 4
 
@@ -2003,6 +2005,7 @@ static int CompareFloat(float val_a, int cmp_typ, float val_b)
         
         break;
     }
+    return 0; /* fell off the end on the EE */
 }
 
 #pragma optimization_level 3

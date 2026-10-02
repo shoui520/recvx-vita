@@ -18,6 +18,10 @@
 #include "../../../ps2/veronica/prog/room.h"
 #include "../../../ps2/veronica/prog/sdfunc.h"
 #include "../../../ps2/veronica/prog/weapon.h"
+#include "../../../ps2/veronica/prog/adv.h"
+#include "../../../ps2/veronica/prog/playpch2.h"
+#include "../../../ps2/veronica/prog/sub1.h"
+#include "../../../ps2/veronica/prog/effsub4.h"
 
 ETTY_WORK lkmtab[2] = 
 {

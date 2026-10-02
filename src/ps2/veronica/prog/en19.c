@@ -14,6 +14,8 @@
 #include "../../../ps2/veronica/prog/ps2_NaMem.h"
 #include "../../../ps2/veronica/prog/subpl.h"
 #include "../../../ps2/veronica/prog/sdfunc.h"
+#include "../../../ps2/veronica/prog/rutchk.h"
+#include "../../../ps2/veronica/prog/effect.h"
 
 // ENEMY: Tyrant T-078 
 

@@ -6,6 +6,7 @@
 #include "../../../ps2/veronica/prog/ps2_NaMatrix.h"
 #include "../../../ps2/veronica/prog/subpl.h"
 #include "../../../ps2/veronica/prog/zonzon.h"
+#include "../../../ps2/veronica/prog/Motion.h"
 
 // ENEMY: Armored Knight B (with lance and large shield) 
 

@@ -16,4 +16,5 @@ int main(int argc, char *argv[])
     } 
     
     njUserExit(); 
+    return 0;
 } 

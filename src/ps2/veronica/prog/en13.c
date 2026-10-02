@@ -9,6 +9,8 @@
 #include "../../../ps2/veronica/prog/sdfunc.h"
 #include "../../../ps2/veronica/prog/subpl.h"
 #include "../../../ps2/veronica/prog/zonzon1.h"
+#include "../../../ps2/veronica/prog/en14.h"
+#include "../../../ps2/veronica/prog/en18.h"
 
 // ENEMY: Second Form Alexia 
 

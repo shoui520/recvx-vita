@@ -1,3 +1,6 @@
+#ifdef RECVX_VITA
+#include "recvx_platform.h"
+#endif
 #include "../../../ps2/veronica/prog/adv.h"
 #include "../../../ps2/veronica/prog/adxwrap.h"
 #include "../../../ps2/veronica/prog/effect.h"
@@ -1257,6 +1260,16 @@ int Adv_FirstWarningMessage()
         switch (lState)
         { 
         case 0:
+#ifdef RECVX_VITA
+            /* unattended boot: no memory card prompt, default options */
+            if (recvx_boot_newgame()) 
+            {
+                ap->Mode = 15;
+                
+                DefaultSetOption(1); 
+                break;
+            }
+#endif
             pSysLoad = CreateSysLoadScreen(&SysLoad, NULL); 
             
             lState = 1; 

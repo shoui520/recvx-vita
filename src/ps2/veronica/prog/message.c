@@ -1,6 +1,7 @@
 #include "../../../ps2/veronica/prog/message.h"
 #include "../../../ps2/veronica/prog/ps2_NaDraw2D.h"
 #include "../../../ps2/veronica/prog/main.h"
+#include "../../../ps2/veronica/prog/sdfunc.h"
 
 float FontScaleX;
 float FontScaleY;

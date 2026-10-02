@@ -7,7 +7,7 @@
 NJS_TEXMEMLIST* Ps2_tex_info __attribute__((aligned(64)));
 unsigned int Ps2_texmemlist_num;
 void* Ps2_tex_buff;
-char* index(char*, int);
+/* char* index(char*, int); -- provided by <strings.h> */
 NJS_TEXLIST* Ps2_current_texlist;
 unsigned int Ps2_current_texno;
 unsigned int Ps2_current_texbreak;
@@ -344,6 +344,7 @@ Sint32	njSetTexture(NJS_TEXLIST *texlist)
         
         Ps2_current_texno = 0;
     }
+    return 0; /* fell off the end on the EE */
 }
 
 // 100% matching! 
@@ -361,6 +362,7 @@ Sint32	njSetTextureNum(Uint32 n)
     Ps2_current_gindex = ((TIM2_PICTUREHEADER_EX*)(Ps2_current_texmemlist->texinfo.texsurface.pSurface))->Gindex; 
     
     Ps2TexLoad(Ps2_current_texmemlist);
+    return 0; /* fell off the end on the EE */
 }
 
 // 100% matching!
@@ -383,12 +385,14 @@ Sint32	njSetTextureNumG(Uint32 globalIndex)
         
         exit(0);
     }
+    return 0; /* fell off the end on the EE */
 }
 
 // 100% matching!
 int njSetTextureNumSys(unsigned int n)
 {
     Ps2TexLoad((NJS_TEXMEMLIST*)Ps2_current_texlist->textures[n].texaddr);
+    return 0; /* fell off the end on the EE */
 }
 
 // 100% matching!
@@ -452,6 +456,7 @@ Sint32	njReleaseTexture(NJS_TEXLIST *texlist)
     } 
     
     ring_check();
+    return 0; /* fell off the end on the EE */
 }
 
 // 100% matching! 
@@ -528,6 +533,7 @@ void 	njSetPaletteMode(Uint32 mode)
 Uint32	njGetPaletteMode(void)
 {
 
+    return 0; /* fell off the end on the EE */
 }
 
 // 100% matching!
@@ -782,7 +788,7 @@ int ring_check()
         
         if (p == &Ps2_tm_list_last) 
         {
-            return;
+            return 0;
         }
     } while (*(int*)p->FileId == MAKE_MAGIC('T', 'I', 'M', '2'));
 

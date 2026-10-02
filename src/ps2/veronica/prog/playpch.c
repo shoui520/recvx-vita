@@ -7,6 +7,8 @@
 #include "../../../ps2/veronica/prog/ps2_NaMatrix.h"
 #include "../../../ps2/veronica/prog/pwksub.h"
 #include "../../../ps2/veronica/prog/weapon.h"
+#include "../../../ps2/veronica/prog/sdfunc.h"
+#include "../../../ps2/veronica/prog/flag.h"
 
 // 100% matching! 
 void PlyPchInit(BH_PWORK* ewP)

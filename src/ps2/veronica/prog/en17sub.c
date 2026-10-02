@@ -1,4 +1,5 @@
 #include "../../../ps2/veronica/prog/en17sub.h"
+#include "../../../ps2/veronica/prog/MdlPut.h"
 
 typedef void (*LArm_Mode0_proc)(BH_PWORK*);
 typedef void (*RArm_Mode0_proc)(BH_PWORK*);

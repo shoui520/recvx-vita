@@ -32,7 +32,7 @@ MWD_IF Ps2Func =
 // 100% matching!
 Sint32 mwPlyCalcWorkSofdec(Sint32 ftype, Sint32 max_bps, Sint32 max_sx, Sint32 max_sy, Sint32 nfb)
 {
-
+    return 64;
 }
 
 // 100% matching!
@@ -131,7 +131,7 @@ void mwPlyFinishSofdec(void)
 // 100% matching!
 Sint32 mwPlyGetBright(MWPLY mwply)
 {
-
+    return 0;
 }
 
 // 100% matching!
@@ -268,7 +268,7 @@ void ps2mwPlySetOutVol(MWPLY ply, Sint32 vol)
 // 100% matching!
 Sint32 ps2mwPlyGetOutVol(MWPLY ply)
 {
-
+    return 0;
 }
 
 // 100% matching!

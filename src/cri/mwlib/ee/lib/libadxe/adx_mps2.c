@@ -10,8 +10,8 @@ int volatile adxps2_id_adx = 0;
 int volatile adxps2_id_main = 0;
 Sint32 volatile adxps2_exec_svr = 0;
 Sint32 volatile adxps2_lock_count = 0;
-long unsigned int volatile adxps2_scnt = 0;
-long unsigned int volatile adxps2_vcnt = 0;
+u_long volatile adxps2_scnt = 0;
+u_long volatile adxps2_vcnt = 0;
 int (*adxps2_old_cbf)(int arg) = NULL;
 int adxps2_cur_prio = 0;
 int adxps2_cur_tid = 0;
@@ -106,11 +106,16 @@ void ADXPS2_SetupThrd(ADXPS2_TPRM *tprm)
     
     th1.initPriority = adxps2_save_tprm.prio_safe;
     
+#ifdef RECVX_VITA
+    /* the spinner only enforces ADXPS2_Lock by priority; Lock is a mutex here */
+    adxps2_id_safe = 0;
+#else
     adxps2_id_safe = CreateThread(&th1);
+#endif
     
     adxps2_id_safe;
     
-    StartThread(adxps2_id_safe, NULL);
+    if (adxps2_id_safe != 0) StartThread(adxps2_id_safe, NULL);
     
     if (adxps2_id_safe != 0) 
     {
@@ -170,6 +175,30 @@ void ADXPS2_ShutdownThrd(void)
     ChangeThreadPriority(adxps2_id_main, adxps2_main_prio_def);
 }
 
+#ifdef RECVX_VITA
+/*
+ * On the EE the lock holder runs at priority 1 and a spinner at priority 8
+ * keeps every other ADX user off the CPU while it blocks. Vita threads can't
+ * be suspended from user mode, so use a recursive mutex for the same effect.
+ */
+void recvx_adx_lock(void);
+void recvx_adx_unlock(void);
+
+void ADXPS2_Lock(void)
+{
+    recvx_adx_lock();
+    adxps2_lock_count++;
+}
+
+void ADXPS2_Unlock(void)
+{
+    if (adxps2_lock_count > 0)
+    {
+        adxps2_lock_count--;
+        recvx_adx_unlock();
+    }
+}
+#else
 // 100% matching!
 void ADXPS2_Lock(void)
 {
@@ -227,6 +256,7 @@ void ADXPS2_Unlock(void)
         adxps2_lock_count = 0;
     }
 }
+#endif
 
 // 100% matching!
 void ADXPS2_ExecServer(void) 

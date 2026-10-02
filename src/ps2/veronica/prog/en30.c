@@ -9,6 +9,9 @@
 #include "../../../ps2/veronica/prog/macros.h"
 #include "../../../ps2/veronica/prog/eneset.h"
 #include "../../../ps2/veronica/prog/effect.h"
+#include "../../../ps2/veronica/prog/pwksub.h"
+#include "../../../ps2/veronica/prog/hitchk.h"
+#include "../../../ps2/veronica/prog/rutchk.h"
 
 // ENEMY: Alexia's Baby 
 

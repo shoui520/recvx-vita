@@ -1656,6 +1656,7 @@ int sndr_trans_func()
         
         break;
     }
+    return 0; /* fell off the end on the EE */
 }
 
 // 100% matching!

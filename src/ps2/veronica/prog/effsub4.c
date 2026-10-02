@@ -14,6 +14,7 @@
 #include "../../../ps2/veronica/prog/ps2_NinjaPtcl.h"
 #include "../../../ps2/veronica/prog/sdfunc.h"
 #include "../../../ps2/veronica/prog/zonzon.h"
+#include "../../../ps2/veronica/prog/effsub3.h"
 
 // 100% matching!
 void bhEff_SetPtcl(BH_PWORK* epw, NJS_POINT3* pos, int tex_id)

@@ -9,6 +9,8 @@
 #include "../../../ps2/veronica/prog/hitchk.h"
 #include "../../../ps2/veronica/prog/player.h"
 #include "../../../ps2/veronica/prog/zonzon1.h"
+#include "../../../ps2/veronica/prog/effsub3.h"
+#include "../../../ps2/veronica/prog/weapon.h"
 
 // ENEMY: Alfred Ashford 
 

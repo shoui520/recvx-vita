@@ -273,7 +273,7 @@ void DTX_ExecHndl(DTX dtx)
         SyncDCache(dtx->dt, (void*)(((Sint8*)dtx->dt + dtx->dtlen) - 1)); // same as above
         InvalidDCache(dtx->dt, (void*)(((Sint8*)dtx->dt + dtx->dtlen) + 63)); 
         
-        dtx->dma.data = (Sint32)dtx->dt & 0xFFFFFFF;
+        dtx->dma.data = (Sint32)dtx->dt & EE_PHYS_MASK;
         
         dtx->dma.addr = (Sint32)dtx->trdt;
         

@@ -7,6 +7,13 @@
 #include "../../../ps2/veronica/prog/hitchk.h"
 #include "../../../ps2/veronica/prog/eneset.h"
 #include "../../../ps2/veronica/prog/effect.h"
+#include "../../../ps2/veronica/prog/sdfunc.h"
+#include "../../../ps2/veronica/prog/pwksub.h"
+#include "../../../ps2/veronica/prog/Motion.h"
+#include "../../../ps2/veronica/prog/MdlPut.h"
+#include "../../../ps2/veronica/prog/rutchk.h"
+#include "../../../ps2/veronica/prog/effsub4.h"
+#include "../../../ps2/veronica/prog/njplus.h"
 
 // ENEMY: Monster Steve 
 
@@ -448,6 +455,7 @@ int bhEne17_DmgChk(BH_PWORK* epw)
             }
         }
     }
+    return 0; /* fell off the end on the EE */
 }
 
 // 100% matching
@@ -1658,6 +1666,7 @@ int bhEne17_PlayerDGCheck(BH_PWORK* epw, BH_PWORK* pl)
         i++;
         j += 12;
     }
+    return 0; /* fell off the end on the EE */
 }
 
 // 100% matching!
@@ -1675,7 +1684,7 @@ int bhEne17_CameraControl(BH_PWORK* epw)
         if (!(EXP0_F(24) <= 0.01f)) {
             cam.ofy = (EXP0_F(24) * (-rand() / -2.1474836e9f)) - (EXP0_F(24) / 2.0f);
             EXP0_F(24) *= 0.8f;
-            return;
+            return 0;
         }
         
         cam.ofx = 0.0f;
@@ -1683,6 +1692,7 @@ int bhEne17_CameraControl(BH_PWORK* epw)
         cam.ofz = 0.0f;
         ((unsigned int*)epw->exp0)[2] &= ~0x800;
     }
+    return 0; /* fell off the end on the EE */
 }
 
 // 100% matching!

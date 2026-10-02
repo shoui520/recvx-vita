@@ -9,15 +9,15 @@
 #include "../../../ps2/veronica/prog/sdfunc.h"
 #include "../../../ps2/veronica/prog/main.h"
 
-// the three vars below were originally defined as unsigned int in ps2_NaFog.c, and redeclared as unsigned long here
-extern unsigned long ulNaFogR;
-extern unsigned long ulNaFogG;
-extern unsigned long ulNaFogB;
+// the three vars below were originally defined as unsigned int in ps2_NaFog.c, and redeclared as u_long here
+extern u_long ulNaFogR;
+extern u_long ulNaFogG;
+extern u_long ulNaFogB;
 
 sceGsDBuffDc Db;
 void (*EorFunc)();
 void (*VsyncFunc)();
-unsigned int Ps2_vcount;
+volatile unsigned int Ps2_vcount;
 unsigned int Ps2_dbuff;
 unsigned int Ps2_njControl3D_flag;
 unsigned int Ps2_sys_cnt;
@@ -237,9 +237,9 @@ void PS2_jikken()
 // 99.92% matching 
 void PS2_swap()
 {
-    unsigned long *p;
+    u_long *p;
 
-    p = (unsigned long*)WORKBASE;
+    p = (u_long*)WORKBASE;
 
     D2_SyncTag();
 
@@ -306,9 +306,9 @@ void PS2_swap()
 }
 
 // 99.93% matching
-void Ps2AddPrim(unsigned long prim, void* dp, unsigned int num, unsigned int clip_3d_on)
+void Ps2AddPrim(u_long prim, void* dp, unsigned int num, unsigned int clip_3d_on)
 {
-    unsigned long* p;           
+    u_long* p;           
     unsigned int i;             
     unsigned int clip_flag;     
     unsigned int sc_flag;       
@@ -348,7 +348,7 @@ void Ps2AddPrim(unsigned long prim, void* dp, unsigned int num, unsigned int cli
         }
     } 
     
-    p = (unsigned long*)WORKBASE; 
+    p = (u_long*)WORKBASE; 
     
     D2_SyncTag(); 
     
@@ -460,8 +460,8 @@ void Ps2AddPrim(unsigned long prim, void* dp, unsigned int num, unsigned int cli
             ((UNKNOWN*)(p + 4))->unkC &= ~0x8000;
         }
         
-        p = (unsigned long*)((int)p + 48); 
-        dp = (unsigned long*)((int)dp + 48);
+        p = (u_long*)((int)p + 48); 
+        dp = (u_long*)((int)dp + 48);
     } 
     
     if ((prim & 0x20000000000000)) 
@@ -477,15 +477,15 @@ void Ps2AddPrim(unsigned long prim, void* dp, unsigned int num, unsigned int cli
 } 
 
 // 100% matching!
-void Ps2AddPrim2D(unsigned long prim, void* dp, unsigned int num)
+void Ps2AddPrim2D(u_long prim, void* dp, unsigned int num)
 {
     Ps2AddPrim(prim, dp, num, 0);
 }
 
 // 100% matching!
-void Ps2AddPrim3D(unsigned long prim, void* dp, unsigned int num)
+void Ps2AddPrim3D(u_long prim, void* dp, unsigned int num)
 {
-    unsigned long* p;             
+    u_long* p;             
     TIM2_PICTUREHEADER_EX* timp;  
     unsigned int clip_flag;    // needs use   
     unsigned int clut_flag;    // needs use
@@ -530,7 +530,7 @@ void Ps2AddPrim3D(unsigned long prim, void* dp, unsigned int num)
         }
     } 
 
-    p = (unsigned long*)WORKBASE;
+    p = (u_long*)WORKBASE;
     
     D2_SyncTag();
 
@@ -546,101 +546,159 @@ void Ps2AddPrim3D(unsigned long prim, void* dp, unsigned int num)
     *p++ = (SCE_GIF_SET_TAG(0, 1, SCE_GIF_REGLIST, 0, 0, 3) | prim) | num;
     *p++ = GIF_REGLIST(SCE_GS_ST, SCE_GS_RGBAQ, SCE_GS_XYZF2);
     
-    asm volatile
-    ("
-    .set noreorder
-        lqc2        vf10, 0(%3)
-        lqc2        vf13, 0(%0)
-        lqc2        vf12, 0(%1)
-        lqc2        vf11, 0(%2)
-        
-        vitof0.w    vf10, vf10
-        
-        vsub.xyzw   vf9, vf9, vf9
-        
-        lui         at, (0x3FFFF >> 16)
-        
-        ori         v0, zero,  0x8000
-    
-        ori         a0,   at, (0x3FFFF & 0xFFFF)
-        
-        ctc2        zero, vi18
-        ctc2        v0,   vi2
-    
-        viaddi      vi4, vi0, 0
-    
-        addu        v0, %6, zero
-        
-        vdiv        Q, vf0w, vf10w
-    
-    l_002CBEBC:
-        lqc2        vf4,    0(%4)
-        lqc2        vf5, 0x10(%4)
-        lqc2        vf6, 0x20(%4)
-        
-        vmtir       vi3, vf4w
-    
-        vadda.z     ACC, vf6, vf11
-        vmaddx.z    vf7, vf6, vf11x
-        
-        vsub.xy     vf7, vf6, vf13
-        
-        vclipw.xyz  vf7, vf13w        
-        
-        vadda.z     ACC, vf0, vf10
-        vmaddx.z    vf6, vf4, vf10x
-        
-        vmax.z      vf6, vf6, vf0
-        
-        vminiy.z    vf6, vf6, vf12y
-        
-        vaddz.w     vf9, vf9, vf6z
-        
-        vftoi4.xyzw vf6, vf6
-        
-        vmtir       vi5, vf6w
-    
-        cfc2        v1, vi18
-    
-        and         v1, v1, a0
-    
-        beqz        v1, l_002CBF0C
-        nop
-    
-        vior        vi3, vi3, vi2
-        
-    l_002CBF0C:
-        vior        vi5, vi5, vi3
-        viand       vi4, vi4, vi5
-    
-        vmfir.w     vf6, vi5
-        
-        sqc2        vf4,    0(%5)
-        sqc2        vf5, 0x10(%5)
-        sqc2        vf6, 0x20(%5) 
-        
-        addi        v0, v0, -1
-        addiu       %5, %5, 48
-        
-        bnez        v0, l_002CBEBC
-        
-        addiu       %4, %4, 48
-        
-        cfc2        v1, vi4
-        
-        bnez        v0, l_002CBF9C
-        nop
-    
-        vmulq.w     vf4, vf9, Q
-        
-        sqc2        vf4, 0(%5) 
-    .set reorder
-    " : : "r"(clip_vec), "r"(near_far_vec), "r"(zclip_ab_vec), "r"(zbuff_ab_vec), "r"(dp), "r"(p), "r"(num) : 
-    );
+    { /* translated from EE asm by agent mips2c; original kept below */
+    /* |  */
+    /* |     (" */
+    /* |     .set noreorder */
+    /* |         lqc2        vf10, 0(%3) */
+    /* |         lqc2        vf13, 0(%0) */
+    /* |         lqc2        vf12, 0(%1) */
+    /* |         lqc2        vf11, 0(%2) */
+    /* |          */
+    /* |         vitof0.w    vf10, vf10 */
+    /* |          */
+    /* |         vsub.xyzw   vf9, vf9, vf9 */
+    /* |          */
+    /* |         lui         at, (0x3FFFF >> 16) */
+    /* |          */
+    /* |         ori         v0, zero,  0x8000 */
+    /* |      */
+    /* |         ori         a0,   at, (0x3FFFF & 0xFFFF) */
+    /* |          */
+    /* |         ctc2        zero, vi18 */
+    /* |         ctc2        v0,   vi2 */
+    /* |      */
+    /* |         viaddi      vi4, vi0, 0 */
+    /* |      */
+    /* |         addu        v0, %6, zero */
+    /* |          */
+    /* |         vdiv        Q, vf0w, vf10w */
+    /* |      */
+    /* |     l_002CBEBC: */
+    /* |         lqc2        vf4,    0(%4) */
+    /* |         lqc2        vf5, 0x10(%4) */
+    /* |         lqc2        vf6, 0x20(%4) */
+    /* |          */
+    /* |         vmtir       vi3, vf4w */
+    /* |      */
+    /* |         vadda.z     ACC, vf6, vf11 */
+    /* |         vmaddx.z    vf7, vf6, vf11x */
+    /* |          */
+    /* |         vsub.xy     vf7, vf6, vf13 */
+    /* |          */
+    /* |         vclipw.xyz  vf7, vf13w         */
+    /* |          */
+    /* |         vadda.z     ACC, vf0, vf10 */
+    /* |         vmaddx.z    vf6, vf4, vf10x */
+    /* |          */
+    /* |         vmax.z      vf6, vf6, vf0 */
+    /* |          */
+    /* |         vminiy.z    vf6, vf6, vf12y */
+    /* |          */
+    /* |         vaddz.w     vf9, vf9, vf6z */
+    /* |          */
+    /* |         vftoi4.xyzw vf6, vf6 */
+    /* |          */
+    /* |         vmtir       vi5, vf6w */
+    /* |      */
+    /* |         cfc2        v1, vi18 */
+    /* |      */
+    /* |         and         v1, v1, a0 */
+    /* |      */
+    /* |         beqz        v1, l_002CBF0C */
+    /* |         nop */
+    /* |      */
+    /* |         vior        vi3, vi3, vi2 */
+    /* |          */
+    /* |     l_002CBF0C: */
+    /* |         vior        vi5, vi5, vi3 */
+    /* |         viand       vi4, vi4, vi5 */
+    /* |      */
+    /* |         vmfir.w     vf6, vi5 */
+    /* |          */
+    /* |         sqc2        vf4,    0(%5) */
+    /* |         sqc2        vf5, 0x10(%5) */
+    /* |         sqc2        vf6, 0x20(%5)  */
+    /* |          */
+    /* |         addi        v0, v0, -1 */
+    /* |         addiu       %5, %5, 48 */
+    /* |          */
+    /* |         bnez        v0, l_002CBEBC */
+    /* |          */
+    /* |         addiu       %4, %4, 48 */
+    /* |          */
+    /* |         cfc2        v1, vi4 */
+    /* |          */
+    /* |         bnez        v0, l_002CBF9C */
+    /* |         nop */
+    /* |      */
+    /* |         vmulq.w     vf4, vf9, Q */
+    /* |          */
+    /* |         sqc2        vf4, 0(%5)  */
+    /* |     .set reorder */
+    /* |     " : : "r"(clip_vec), "r"(near_far_vec), "r"(zclip_ab_vec), "r"(zbuff_ab_vec), "r"(dp), "r"(p), "r"(num) :  */
+    /* |     ); */
+        ee_gpr r1 = {{0}}, r2 = {{0}}, r3 = {{0}}, r4 = {{0}};
+        __typeof__((zbuff_ab_vec) + 0) op0 = (zbuff_ab_vec);
+        __typeof__((clip_vec) + 0) op1 = (clip_vec);
+        __typeof__((near_far_vec) + 0) op2 = (near_far_vec);
+        __typeof__((zclip_ab_vec) + 0) op3 = (zclip_ab_vec);
+        __typeof__((num) + 0) op4 = (num);
+        __typeof__((dp) + 0) op5 = (dp);
+        __typeof__((p) + 0) op6 = (p);
+        vu_lqc2(10, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op0)) + (0)));
+        vu_lqc2(13, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op1)) + (0)));
+        vu_lqc2(12, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op2)) + (0)));
+        vu_lqc2(11, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op3)) + (0)));
+        vu_itof(VF(10), VF(10), 1, (1.0f / 1.0f));
+        vu_sub(VF(9), VF(9), VF(9), 15);
+        r1.d[0] = EE_SEXT32((uint32_t)((0x3FFFF >> 16)) << 16);
+        r2.d[0] = (0) | (uint64_t)(uint16_t)(0x8000);
+        r4.d[0] = (r1.d[0]) | (uint64_t)(uint16_t)((0x3FFFF & 0xFFFF));
+        vu_ctc2(18, (uint32_t)(0));
+        vu_ctc2(2, (uint32_t)(r2.d[0]));
+        VI(4) = (int16_t)(VI(0) + (0));
+        r2.d[0] = EE_SEXT32((uint32_t)(EE_CVAR_GET(op4)) + (uint32_t)(0));
+        VQ = vu_div(VF(0)[3], VF(10)[3]);
+        L_Ps2AddPrim3D_l_002CBEBC:;
+        vu_lqc2(4, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op5)) + (0)));
+        vu_lqc2(5, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op5)) + (0x10)));
+        vu_lqc2(6, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op5)) + (0x20)));
+        VI(3) = (int16_t)ee_fbits(VF(4)[3]);
+        vu_add(VACC, VF(6), VF(11), 2);
+        vu_madd_bc(VF(7), VF(6), VF(11)[0], 2);
+        vu_sub(VF(7), VF(6), VF(13), 12);
+        vu_clip(VF(7), VF(13)[3]);
+        vu_add(VACC, VF(0), VF(10), 2);
+        vu_madd_bc(VF(6), VF(4), VF(10)[0], 2);
+        vu_max(VF(6), VF(6), VF(0), 2);
+        vu_mini_bc(VF(6), VF(6), VF(12)[1], 2);
+        vu_add_bc(VF(9), VF(9), VF(6)[2], 1);
+        vu_ftoi(VF(6), VF(6), 15, 16.0f);
+        VI(5) = (int16_t)ee_fbits(VF(6)[3]);
+        r3.d[0] = (uint64_t)vu_cfc2(18);
+        r3.d[0] = (r3.d[0]) & r4.d[0];
+        if ((int64_t)(r3.d[0]) == 0) goto L_Ps2AddPrim3D_l_002CBF0C;
+        VI(3) = (int16_t)(VI(3) | (VI(2)));
+        L_Ps2AddPrim3D_l_002CBF0C:;
+        VI(5) = (int16_t)(VI(5) | (VI(3)));
+        VI(4) = (int16_t)(VI(4) & (VI(5)));
+        { float v_ = ee_bitsf((uint32_t)(int32_t)VI(5)); float t_[4] = { v_, v_, v_, v_ }; vu_store(VF(6), t_, 1); }
+        vu_sqc2(4, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op6)) + (0)));
+        vu_sqc2(5, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op6)) + (0x10)));
+        vu_sqc2(6, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op6)) + (0x20)));
+        r2.d[0] = EE_SEXT32((uint32_t)(r2.d[0]) + (uint32_t)(-1));
+        EE_CVAR_SET(op6, EE_SEXT32((uint32_t)(EE_CVAR_GET(op6)) + (uint32_t)(48)));
+        { int c_ = ((int64_t)(r2.d[0]) != 0); EE_CVAR_SET(op5, EE_SEXT32((uint32_t)(EE_CVAR_GET(op5)) + (uint32_t)(48))); if (c_) goto L_Ps2AddPrim3D_l_002CBEBC; }
+        r3.d[0] = (uint64_t)(uint16_t)VI(4);
+        if ((int64_t)(r2.d[0]) != 0) goto l_002CBF9C;
+        vu_mul_bc(VF(4), VF(9), VQ, 1);
+        vu_sqc2(4, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op6)) + (0)));
+    }
 
     if ((prim & 0x20000000000000)) 
     {
-        Ps2AddOT((void*)0x70000000, num, ((float*)p)[(12 * num) + 3], prim);
+        Ps2AddOT((void*)WORKBASE, num, ((float*)p)[(12 * num) + 3], prim);
     }
     else 
     {
@@ -654,9 +712,9 @@ l_002CBF9C:
 }
 
 // 100% matching!
-void Ps2AddPrim3DEx(unsigned long prim, void* dp, unsigned int num)
+void Ps2AddPrim3DEx(u_long prim, void* dp, unsigned int num)
 {
-    unsigned long* p;             
+    u_long* p;             
     TIM2_PICTUREHEADER_EX* timp;  
     unsigned int clip_flag;    // needs use   
     unsigned int clut_flag;    // needs use
@@ -701,7 +759,7 @@ void Ps2AddPrim3DEx(unsigned long prim, void* dp, unsigned int num)
         }
     } 
 
-    p = (unsigned long*)WORKBASE;
+    p = (u_long*)WORKBASE;
     
     D2_SyncTag();
 
@@ -717,103 +775,162 @@ void Ps2AddPrim3DEx(unsigned long prim, void* dp, unsigned int num)
     *p++ = (SCE_GIF_SET_TAG(0, 1, SCE_GIF_REGLIST, 0, 0, 3) | prim) | num;
     *p++ = GIF_REGLIST(SCE_GS_ST, SCE_GS_RGBAQ, SCE_GS_XYZF2);
     
-    asm volatile
-    ("
-    .set noreorder
-        lqc2        vf10, 0(%3)
-        lqc2        vf13, 0(%0)
-        lqc2        vf12, 0(%1)
-        lqc2        vf11, 0(%2)
-        
-        vitof0.w    vf10, vf10
-        
-        vsub.xyzw   vf9, vf9, vf9
-        
-        lui         at, (0x3FFFF >> 16)
-        
-        ori         v0, zero,  0x8000
-    
-        ori         a0,   at, (0x3FFFF & 0xFFFF)
-        
-        ctc2        zero, vi18
-        ctc2        v0,   vi2
-    
-        viaddi      vi4, vi0, 0
-    
-        addu        v0, %6, zero
-        
-        vdiv        Q, vf0w, vf10w
-    
-    l_002CC1CC:
-        lqc2        vf4,    0(%4)
-        lqc2        vf5, 0x10(%4)
-        lqc2        vf6, 0x20(%4)
-        
-        vmtir       vi3, vf4w
-    
-        vadda.z     ACC, vf6, vf11
-        vmaddx.z    vf7, vf6, vf11x
-        
-        vsub.xy     vf7, vf6, vf13
-        
-        vclipw.xyz  vf7, vf13w        
-        
-        vadda.z     ACC, vf0, vf10
-        vmaddx.z    vf6, vf4, vf10x
-        
-        vmax.z      vf6, vf6, vf0
-        
-        vftoi0.xyzw vf5, vf5
-        
-        vminiy.z    vf6, vf6, vf12y
-        
-        vaddz.w     vf9, vf9, vf6z
-        
-        vftoi4.xyzw vf6, vf6
-        
-        vmtir       vi5, vf6w
-    
-        cfc2        v1, vi18
-    
-        and         v1, v1, a0
-    
-        beqz        v1, l_002CC220
-        nop
-    
-        vior        vi3, vi3, vi2
-        
-    l_002CC220:
-        vior        vi5, vi5, vi3
-        viand       vi4, vi4, vi5
-    
-        vmfir.w     vf6, vi5
-        
-        sqc2        vf4,    0(%5)
-        sqc2        vf5, 0x10(%5)
-        sqc2        vf6, 0x20(%5) 
-        
-        addi        v0, v0, -1
-        addiu       %5, %5, 48
-        
-        bnez        v0, l_002CC1CC
-        
-        addiu       %4, %4, 48
-        
-        cfc2        v1, vi4
-        
-        bnez        v0, l_002CC2B0
-        nop
-    
-        vmulq.w     vf4, vf9, Q
-        
-        sqc2        vf4, 0(%5) 
-    .set reorder
-    " : : "r"(clip_vec), "r"(near_far_vec), "r"(zclip_ab_vec), "r"(zbuff_ab_vec), "r"(dp), "r"(p), "r"(num) : 
-    );
+    { /* translated from EE asm by agent mips2c; original kept below */
+    /* |  */
+    /* |     (" */
+    /* |     .set noreorder */
+    /* |         lqc2        vf10, 0(%3) */
+    /* |         lqc2        vf13, 0(%0) */
+    /* |         lqc2        vf12, 0(%1) */
+    /* |         lqc2        vf11, 0(%2) */
+    /* |          */
+    /* |         vitof0.w    vf10, vf10 */
+    /* |          */
+    /* |         vsub.xyzw   vf9, vf9, vf9 */
+    /* |          */
+    /* |         lui         at, (0x3FFFF >> 16) */
+    /* |          */
+    /* |         ori         v0, zero,  0x8000 */
+    /* |      */
+    /* |         ori         a0,   at, (0x3FFFF & 0xFFFF) */
+    /* |          */
+    /* |         ctc2        zero, vi18 */
+    /* |         ctc2        v0,   vi2 */
+    /* |      */
+    /* |         viaddi      vi4, vi0, 0 */
+    /* |      */
+    /* |         addu        v0, %6, zero */
+    /* |          */
+    /* |         vdiv        Q, vf0w, vf10w */
+    /* |      */
+    /* |     l_002CC1CC: */
+    /* |         lqc2        vf4,    0(%4) */
+    /* |         lqc2        vf5, 0x10(%4) */
+    /* |         lqc2        vf6, 0x20(%4) */
+    /* |          */
+    /* |         vmtir       vi3, vf4w */
+    /* |      */
+    /* |         vadda.z     ACC, vf6, vf11 */
+    /* |         vmaddx.z    vf7, vf6, vf11x */
+    /* |          */
+    /* |         vsub.xy     vf7, vf6, vf13 */
+    /* |          */
+    /* |         vclipw.xyz  vf7, vf13w         */
+    /* |          */
+    /* |         vadda.z     ACC, vf0, vf10 */
+    /* |         vmaddx.z    vf6, vf4, vf10x */
+    /* |          */
+    /* |         vmax.z      vf6, vf6, vf0 */
+    /* |          */
+    /* |         vftoi0.xyzw vf5, vf5 */
+    /* |          */
+    /* |         vminiy.z    vf6, vf6, vf12y */
+    /* |          */
+    /* |         vaddz.w     vf9, vf9, vf6z */
+    /* |          */
+    /* |         vftoi4.xyzw vf6, vf6 */
+    /* |          */
+    /* |         vmtir       vi5, vf6w */
+    /* |      */
+    /* |         cfc2        v1, vi18 */
+    /* |      */
+    /* |         and         v1, v1, a0 */
+    /* |      */
+    /* |         beqz        v1, l_002CC220 */
+    /* |         nop */
+    /* |      */
+    /* |         vior        vi3, vi3, vi2 */
+    /* |          */
+    /* |     l_002CC220: */
+    /* |         vior        vi5, vi5, vi3 */
+    /* |         viand       vi4, vi4, vi5 */
+    /* |      */
+    /* |         vmfir.w     vf6, vi5 */
+    /* |          */
+    /* |         sqc2        vf4,    0(%5) */
+    /* |         sqc2        vf5, 0x10(%5) */
+    /* |         sqc2        vf6, 0x20(%5)  */
+    /* |          */
+    /* |         addi        v0, v0, -1 */
+    /* |         addiu       %5, %5, 48 */
+    /* |          */
+    /* |         bnez        v0, l_002CC1CC */
+    /* |          */
+    /* |         addiu       %4, %4, 48 */
+    /* |          */
+    /* |         cfc2        v1, vi4 */
+    /* |          */
+    /* |         bnez        v0, l_002CC2B0 */
+    /* |         nop */
+    /* |      */
+    /* |         vmulq.w     vf4, vf9, Q */
+    /* |          */
+    /* |         sqc2        vf4, 0(%5)  */
+    /* |     .set reorder */
+    /* |     " : : "r"(clip_vec), "r"(near_far_vec), "r"(zclip_ab_vec), "r"(zbuff_ab_vec), "r"(dp), "r"(p), "r"(num) :  */
+    /* |     ); */
+        ee_gpr r1 = {{0}}, r2 = {{0}}, r3 = {{0}}, r4 = {{0}};
+        __typeof__((zbuff_ab_vec) + 0) op0 = (zbuff_ab_vec);
+        __typeof__((clip_vec) + 0) op1 = (clip_vec);
+        __typeof__((near_far_vec) + 0) op2 = (near_far_vec);
+        __typeof__((zclip_ab_vec) + 0) op3 = (zclip_ab_vec);
+        __typeof__((num) + 0) op4 = (num);
+        __typeof__((dp) + 0) op5 = (dp);
+        __typeof__((p) + 0) op6 = (p);
+        vu_lqc2(10, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op0)) + (0)));
+        vu_lqc2(13, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op1)) + (0)));
+        vu_lqc2(12, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op2)) + (0)));
+        vu_lqc2(11, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op3)) + (0)));
+        vu_itof(VF(10), VF(10), 1, (1.0f / 1.0f));
+        vu_sub(VF(9), VF(9), VF(9), 15);
+        r1.d[0] = EE_SEXT32((uint32_t)((0x3FFFF >> 16)) << 16);
+        r2.d[0] = (0) | (uint64_t)(uint16_t)(0x8000);
+        r4.d[0] = (r1.d[0]) | (uint64_t)(uint16_t)((0x3FFFF & 0xFFFF));
+        vu_ctc2(18, (uint32_t)(0));
+        vu_ctc2(2, (uint32_t)(r2.d[0]));
+        VI(4) = (int16_t)(VI(0) + (0));
+        r2.d[0] = EE_SEXT32((uint32_t)(EE_CVAR_GET(op4)) + (uint32_t)(0));
+        VQ = vu_div(VF(0)[3], VF(10)[3]);
+        L_Ps2AddPrim3DEx_l_002CC1CC:;
+        vu_lqc2(4, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op5)) + (0)));
+        vu_lqc2(5, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op5)) + (0x10)));
+        vu_lqc2(6, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op5)) + (0x20)));
+        VI(3) = (int16_t)ee_fbits(VF(4)[3]);
+        vu_add(VACC, VF(6), VF(11), 2);
+        vu_madd_bc(VF(7), VF(6), VF(11)[0], 2);
+        vu_sub(VF(7), VF(6), VF(13), 12);
+        vu_clip(VF(7), VF(13)[3]);
+        vu_add(VACC, VF(0), VF(10), 2);
+        vu_madd_bc(VF(6), VF(4), VF(10)[0], 2);
+        vu_max(VF(6), VF(6), VF(0), 2);
+        vu_ftoi(VF(5), VF(5), 15, 1.0f);
+        vu_mini_bc(VF(6), VF(6), VF(12)[1], 2);
+        vu_add_bc(VF(9), VF(9), VF(6)[2], 1);
+        vu_ftoi(VF(6), VF(6), 15, 16.0f);
+        VI(5) = (int16_t)ee_fbits(VF(6)[3]);
+        r3.d[0] = (uint64_t)vu_cfc2(18);
+        r3.d[0] = (r3.d[0]) & r4.d[0];
+        if ((int64_t)(r3.d[0]) == 0) goto L_Ps2AddPrim3DEx_l_002CC220;
+        VI(3) = (int16_t)(VI(3) | (VI(2)));
+        L_Ps2AddPrim3DEx_l_002CC220:;
+        VI(5) = (int16_t)(VI(5) | (VI(3)));
+        VI(4) = (int16_t)(VI(4) & (VI(5)));
+        { float v_ = ee_bitsf((uint32_t)(int32_t)VI(5)); float t_[4] = { v_, v_, v_, v_ }; vu_store(VF(6), t_, 1); }
+        vu_sqc2(4, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op6)) + (0)));
+        vu_sqc2(5, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op6)) + (0x10)));
+        vu_sqc2(6, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op6)) + (0x20)));
+        r2.d[0] = EE_SEXT32((uint32_t)(r2.d[0]) + (uint32_t)(-1));
+        EE_CVAR_SET(op6, EE_SEXT32((uint32_t)(EE_CVAR_GET(op6)) + (uint32_t)(48)));
+        { int c_ = ((int64_t)(r2.d[0]) != 0); EE_CVAR_SET(op5, EE_SEXT32((uint32_t)(EE_CVAR_GET(op5)) + (uint32_t)(48))); if (c_) goto L_Ps2AddPrim3DEx_l_002CC1CC; }
+        r3.d[0] = (uint64_t)(uint16_t)VI(4);
+        if ((int64_t)(r2.d[0]) != 0) goto l_002CC2B0;
+        vu_mul_bc(VF(4), VF(9), VQ, 1);
+        vu_sqc2(4, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op6)) + (0)));
+    }
 
     if ((prim & 0x20000000000000)) 
     {
-        Ps2AddOT((void*)0x70000000, num, ((float*)p)[(12 * num) + 3], prim);
+        Ps2AddOT((void*)WORKBASE, num, ((float*)p)[(12 * num) + 3], prim);
     }
     else 
     {
@@ -827,9 +944,9 @@ l_002CC2B0:
 }
 
 // 100% matching!
-void Ps2AddPrim3DEx1P(unsigned long prim, void* dp, unsigned int num)
+void Ps2AddPrim3DEx1P(u_long prim, void* dp, unsigned int num)
 {
-    unsigned long* p;             
+    u_long* p;             
     TIM2_PICTUREHEADER_EX* timp;  
     unsigned int clip_flag;    // needs use   
     unsigned int clut_flag;    // needs use
@@ -882,7 +999,7 @@ void Ps2AddPrim3DEx1P(unsigned long prim, void* dp, unsigned int num)
         }
     } 
 
-    p = (unsigned long*)WORKBASE;
+    p = (u_long*)WORKBASE;
     
     D2_SyncTag();
 
@@ -898,103 +1015,162 @@ void Ps2AddPrim3DEx1P(unsigned long prim, void* dp, unsigned int num)
     *p++ = (SCE_GIF_SET_TAG(0, 1, SCE_GIF_REGLIST, 0, 0, 3) | prim) | num;
     *p++ = GIF_REGLIST(SCE_GS_ST, SCE_GS_RGBAQ, SCE_GS_XYZF2);
     
-    asm volatile
-    ("
-    .set noreorder
-        lqc2        vf10, 0(%3)
-        lqc2        vf13, 0(%0)
-        lqc2        vf12, 0(%1)
-        lqc2        vf11, 0(%2)
-        
-        vitof0.w    vf10, vf10
-        
-        vsub.xyzw   vf9, vf9, vf9
-        
-        lui         at, (0x3FFFF >> 16)
-        
-        ori         v0, zero,  0x8000
-    
-        ori         a0,   at, (0x3FFFF & 0xFFFF)
-        
-        ctc2        zero, vi18
-        ctc2        v0,   vi2
-    
-        viaddi      vi4, vi0, 0
-    
-        addu        v0, %6, zero
-        
-        vdiv        Q, vf0w, vf10w
-    
-    l_002CC51C:
-        lqc2        vf4,    0(%4)
-        lqc2        vf5, 0x10(%4)
-        lqc2        vf6, 0x20(%4)
-        
-        vmtir       vi3, vf4w
-    
-        vadda.z     ACC, vf6, vf11
-        vmaddx.z    vf7, vf6, vf11x
-        
-        vsub.xy     vf7, vf6, vf13
-        
-        vclipw.xyz  vf7, vf13w        
-        
-        vadda.z     ACC, vf0, vf10
-        vmaddx.z    vf6, vf4, vf10x
-        
-        vmax.z      vf6, vf6, vf0
-        
-        vftoi0.xyzw vf5, vf5
-        
-        vminiy.z    vf6, vf6, vf12y
-        
-        vaddz.w     vf9, vf9, vf6z
-        
-        vftoi4.xyzw vf6, vf6
-        
-        vmtir       vi5, vf6w
-    
-        cfc2        v1, vi18
-    
-        and         v1, v1, a0
-    
-        beqz        v1, l_002CC570
-        nop
-    
-        vior        vi3, vi3, vi2
-        
-    l_002CC570:
-        vior        vi5, vi5, vi3
-        viand       vi4, vi4, vi5
-    
-        vmfir.w     vf6, vi5
-        
-        sqc2        vf4,    0(%5)
-        sqc2        vf5, 0x10(%5)
-        sqc2        vf6, 0x20(%5) 
-        
-        addi        v0, v0, -1
-        addiu       %5, %5, 48
-        
-        bnez        v0, l_002CC51C
-        
-        addiu       %4, %4, 48
-        
-        cfc2        v1, vi4
-        
-        bnez        v0, l_002CC600
-        nop
-    
-        vmulq.w     vf4, vf9, Q
-        
-        sqc2        vf4, 0(%5) 
-    .set reorder
-    " : : "r"(clip_vec), "r"(near_far_vec), "r"(zclip_ab_vec), "r"(zbuff_ab_vec), "r"(dp), "r"(p), "r"(num) : 
-    );
+    { /* translated from EE asm by agent mips2c; original kept below */
+    /* |  */
+    /* |     (" */
+    /* |     .set noreorder */
+    /* |         lqc2        vf10, 0(%3) */
+    /* |         lqc2        vf13, 0(%0) */
+    /* |         lqc2        vf12, 0(%1) */
+    /* |         lqc2        vf11, 0(%2) */
+    /* |          */
+    /* |         vitof0.w    vf10, vf10 */
+    /* |          */
+    /* |         vsub.xyzw   vf9, vf9, vf9 */
+    /* |          */
+    /* |         lui         at, (0x3FFFF >> 16) */
+    /* |          */
+    /* |         ori         v0, zero,  0x8000 */
+    /* |      */
+    /* |         ori         a0,   at, (0x3FFFF & 0xFFFF) */
+    /* |          */
+    /* |         ctc2        zero, vi18 */
+    /* |         ctc2        v0,   vi2 */
+    /* |      */
+    /* |         viaddi      vi4, vi0, 0 */
+    /* |      */
+    /* |         addu        v0, %6, zero */
+    /* |          */
+    /* |         vdiv        Q, vf0w, vf10w */
+    /* |      */
+    /* |     l_002CC51C: */
+    /* |         lqc2        vf4,    0(%4) */
+    /* |         lqc2        vf5, 0x10(%4) */
+    /* |         lqc2        vf6, 0x20(%4) */
+    /* |          */
+    /* |         vmtir       vi3, vf4w */
+    /* |      */
+    /* |         vadda.z     ACC, vf6, vf11 */
+    /* |         vmaddx.z    vf7, vf6, vf11x */
+    /* |          */
+    /* |         vsub.xy     vf7, vf6, vf13 */
+    /* |          */
+    /* |         vclipw.xyz  vf7, vf13w         */
+    /* |          */
+    /* |         vadda.z     ACC, vf0, vf10 */
+    /* |         vmaddx.z    vf6, vf4, vf10x */
+    /* |          */
+    /* |         vmax.z      vf6, vf6, vf0 */
+    /* |          */
+    /* |         vftoi0.xyzw vf5, vf5 */
+    /* |          */
+    /* |         vminiy.z    vf6, vf6, vf12y */
+    /* |          */
+    /* |         vaddz.w     vf9, vf9, vf6z */
+    /* |          */
+    /* |         vftoi4.xyzw vf6, vf6 */
+    /* |          */
+    /* |         vmtir       vi5, vf6w */
+    /* |      */
+    /* |         cfc2        v1, vi18 */
+    /* |      */
+    /* |         and         v1, v1, a0 */
+    /* |      */
+    /* |         beqz        v1, l_002CC570 */
+    /* |         nop */
+    /* |      */
+    /* |         vior        vi3, vi3, vi2 */
+    /* |          */
+    /* |     l_002CC570: */
+    /* |         vior        vi5, vi5, vi3 */
+    /* |         viand       vi4, vi4, vi5 */
+    /* |      */
+    /* |         vmfir.w     vf6, vi5 */
+    /* |          */
+    /* |         sqc2        vf4,    0(%5) */
+    /* |         sqc2        vf5, 0x10(%5) */
+    /* |         sqc2        vf6, 0x20(%5)  */
+    /* |          */
+    /* |         addi        v0, v0, -1 */
+    /* |         addiu       %5, %5, 48 */
+    /* |          */
+    /* |         bnez        v0, l_002CC51C */
+    /* |          */
+    /* |         addiu       %4, %4, 48 */
+    /* |          */
+    /* |         cfc2        v1, vi4 */
+    /* |          */
+    /* |         bnez        v0, l_002CC600 */
+    /* |         nop */
+    /* |      */
+    /* |         vmulq.w     vf4, vf9, Q */
+    /* |          */
+    /* |         sqc2        vf4, 0(%5)  */
+    /* |     .set reorder */
+    /* |     " : : "r"(clip_vec), "r"(near_far_vec), "r"(zclip_ab_vec), "r"(zbuff_ab_vec), "r"(dp), "r"(p), "r"(num) :  */
+    /* |     ); */
+        ee_gpr r1 = {{0}}, r2 = {{0}}, r3 = {{0}}, r4 = {{0}};
+        __typeof__((zbuff_ab_vec) + 0) op0 = (zbuff_ab_vec);
+        __typeof__((clip_vec) + 0) op1 = (clip_vec);
+        __typeof__((near_far_vec) + 0) op2 = (near_far_vec);
+        __typeof__((zclip_ab_vec) + 0) op3 = (zclip_ab_vec);
+        __typeof__((num) + 0) op4 = (num);
+        __typeof__((dp) + 0) op5 = (dp);
+        __typeof__((p) + 0) op6 = (p);
+        vu_lqc2(10, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op0)) + (0)));
+        vu_lqc2(13, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op1)) + (0)));
+        vu_lqc2(12, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op2)) + (0)));
+        vu_lqc2(11, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op3)) + (0)));
+        vu_itof(VF(10), VF(10), 1, (1.0f / 1.0f));
+        vu_sub(VF(9), VF(9), VF(9), 15);
+        r1.d[0] = EE_SEXT32((uint32_t)((0x3FFFF >> 16)) << 16);
+        r2.d[0] = (0) | (uint64_t)(uint16_t)(0x8000);
+        r4.d[0] = (r1.d[0]) | (uint64_t)(uint16_t)((0x3FFFF & 0xFFFF));
+        vu_ctc2(18, (uint32_t)(0));
+        vu_ctc2(2, (uint32_t)(r2.d[0]));
+        VI(4) = (int16_t)(VI(0) + (0));
+        r2.d[0] = EE_SEXT32((uint32_t)(EE_CVAR_GET(op4)) + (uint32_t)(0));
+        VQ = vu_div(VF(0)[3], VF(10)[3]);
+        L_Ps2AddPrim3DEx1P_l_002CC51C:;
+        vu_lqc2(4, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op5)) + (0)));
+        vu_lqc2(5, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op5)) + (0x10)));
+        vu_lqc2(6, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op5)) + (0x20)));
+        VI(3) = (int16_t)ee_fbits(VF(4)[3]);
+        vu_add(VACC, VF(6), VF(11), 2);
+        vu_madd_bc(VF(7), VF(6), VF(11)[0], 2);
+        vu_sub(VF(7), VF(6), VF(13), 12);
+        vu_clip(VF(7), VF(13)[3]);
+        vu_add(VACC, VF(0), VF(10), 2);
+        vu_madd_bc(VF(6), VF(4), VF(10)[0], 2);
+        vu_max(VF(6), VF(6), VF(0), 2);
+        vu_ftoi(VF(5), VF(5), 15, 1.0f);
+        vu_mini_bc(VF(6), VF(6), VF(12)[1], 2);
+        vu_add_bc(VF(9), VF(9), VF(6)[2], 1);
+        vu_ftoi(VF(6), VF(6), 15, 16.0f);
+        VI(5) = (int16_t)ee_fbits(VF(6)[3]);
+        r3.d[0] = (uint64_t)vu_cfc2(18);
+        r3.d[0] = (r3.d[0]) & r4.d[0];
+        if ((int64_t)(r3.d[0]) == 0) goto L_Ps2AddPrim3DEx1P_l_002CC570;
+        VI(3) = (int16_t)(VI(3) | (VI(2)));
+        L_Ps2AddPrim3DEx1P_l_002CC570:;
+        VI(5) = (int16_t)(VI(5) | (VI(3)));
+        VI(4) = (int16_t)(VI(4) & (VI(5)));
+        { float v_ = ee_bitsf((uint32_t)(int32_t)VI(5)); float t_[4] = { v_, v_, v_, v_ }; vu_store(VF(6), t_, 1); }
+        vu_sqc2(4, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op6)) + (0)));
+        vu_sqc2(5, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op6)) + (0x10)));
+        vu_sqc2(6, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op6)) + (0x20)));
+        r2.d[0] = EE_SEXT32((uint32_t)(r2.d[0]) + (uint32_t)(-1));
+        EE_CVAR_SET(op6, EE_SEXT32((uint32_t)(EE_CVAR_GET(op6)) + (uint32_t)(48)));
+        { int c_ = ((int64_t)(r2.d[0]) != 0); EE_CVAR_SET(op5, EE_SEXT32((uint32_t)(EE_CVAR_GET(op5)) + (uint32_t)(48))); if (c_) goto L_Ps2AddPrim3DEx1P_l_002CC51C; }
+        r3.d[0] = (uint64_t)(uint16_t)VI(4);
+        if ((int64_t)(r2.d[0]) != 0) goto l_002CC600;
+        vu_mul_bc(VF(4), VF(9), VQ, 1);
+        vu_sqc2(4, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op6)) + (0)));
+    }
 
     if ((Ps2_albinoid_flag == 0) && ((prim & 0x20000000000000))) 
     {
-        Ps2AddOT((void*)0x70000000, num, Ps2AddPrimPrio, prim);
+        Ps2AddOT((void*)WORKBASE, num, Ps2AddPrimPrio, prim);
     }
     else 
     {
@@ -1008,9 +1184,9 @@ l_002CC600:
 }
 
 // 100% matching!
-void Ps2AddPrim3DMod(unsigned long prim, void* dp, unsigned int num)
+void Ps2AddPrim3DMod(u_long prim, void* dp, unsigned int num)
 {
-    unsigned long* p;             
+    u_long* p;             
     unsigned int clip_flag;      
     unsigned int st_clip_flag;    
     float zsum;                   
@@ -1023,7 +1199,7 @@ void Ps2AddPrim3DMod(unsigned long prim, void* dp, unsigned int num)
     zbuff_ab_vec[2] = -Ps2_zbuff_a;
     zbuff_ab_vec[3] = *(float*)&num;  
     
-    p = (unsigned long*)WORKBASE;
+    p = (u_long*)WORKBASE;
     
     D2_SyncTag();
     
@@ -1041,99 +1217,158 @@ void Ps2AddPrim3DMod(unsigned long prim, void* dp, unsigned int num)
     *p++ = (SCE_GIF_SET_TAG(0, 1, SCE_GIF_REGLIST, 0, 0, 3) | prim) | num;
     *p++ = GIF_REGLIST(SCE_GS_ST, SCE_GS_RGBAQ, SCE_GS_XYZF2);
     
-    asm volatile
-    ("
-    .set noreorder
-        lqc2        vf10, 0(%3)
-        lqc2        vf13, 0(%0)
-        lqc2        vf12, 0(%1)
-        lqc2        vf11, 0(%2)
-        
-        vitof0.w    vf10, vf10
-        
-        vsub.xyzw   vf9, vf9, vf9
-        
-        lui         at, (0x3FFFF >> 16)
-        
-        ori         v0, zero,  0x8000
-    
-        ori         a0,   at, (0x3FFFF & 0xFFFF)
-        
-        ctc2        zero, vi18
-        ctc2        v0,   vi2
-    
-        viaddi      vi4, vi0, 0
-    
-        addu        v0, %6, zero
-        
-        vdiv        Q, vf0w, vf10w
-    
-    l_002CC78C:
-        lqc2        vf4,    0(%4)
-        lqc2        vf5, 0x10(%4)
-        lqc2        vf6, 0x20(%4)
-        
-        vmtir       vi3, vf4w
-    
-        vadda.z     ACC, vf6, vf11
-        vmaddx.z    vf7, vf6, vf11x
-        
-        vsub.xy     vf7, vf6, vf13
-        
-        vclipw.xyz  vf7, vf13w        
-        
-        vadda.z     ACC, vf0, vf10
-        vmaddx.z    vf6, vf4, vf10x
-        
-        vmax.z      vf6, vf6, vf0
-        
-        vftoi0.xyzw vf5, vf5
-        
-        vminiy.z    vf6, vf6, vf12y
-        
-        vaddz.w     vf9, vf9, vf6z
-        
-        vftoi4.xyzw vf6, vf6
-        
-        vmtir       vi5, vf6w
-    
-        cfc2        v1, vi18
-    
-        and         v1, v1, a0
-    
-        beqz        v1, l_002CC7E0
-        nop
-    
-        vior        vi3, vi3, vi2
-        
-    l_002CC7E0:
-        vior        vi5, vi5, vi3
-        viand       vi4, vi4, vi5
-    
-        vmfir.w     vf6, vi5
-        
-        sqc2        vf4,    0(%5)
-        sqc2        vf5, 0x10(%5)
-        sqc2        vf6, 0x20(%5) 
-        
-        addi        v0, v0, -1
-        addiu       %5, %5, 48
-        
-        bnez        v0, l_002CC78C
-        
-        addiu       %4, %4, 48
-        
-        cfc2        v1, vi4
-        
-        bnez        v0, l_002CC82C
-        nop
-    
-        vmulq.w     vf4, vf9, Q
-        
-        sqc2        vf4, 0(%5) 
-    .set reorder
-    " : : "r"(clip_vec), "r"(near_far_vec), "r"(zclip_ab_vec), "r"(zbuff_ab_vec), "r"(dp), "r"(p), "r"(num) : 
-    );
+    { /* translated from EE asm by agent mips2c; original kept below */
+    /* |  */
+    /* |     (" */
+    /* |     .set noreorder */
+    /* |         lqc2        vf10, 0(%3) */
+    /* |         lqc2        vf13, 0(%0) */
+    /* |         lqc2        vf12, 0(%1) */
+    /* |         lqc2        vf11, 0(%2) */
+    /* |          */
+    /* |         vitof0.w    vf10, vf10 */
+    /* |          */
+    /* |         vsub.xyzw   vf9, vf9, vf9 */
+    /* |          */
+    /* |         lui         at, (0x3FFFF >> 16) */
+    /* |          */
+    /* |         ori         v0, zero,  0x8000 */
+    /* |      */
+    /* |         ori         a0,   at, (0x3FFFF & 0xFFFF) */
+    /* |          */
+    /* |         ctc2        zero, vi18 */
+    /* |         ctc2        v0,   vi2 */
+    /* |      */
+    /* |         viaddi      vi4, vi0, 0 */
+    /* |      */
+    /* |         addu        v0, %6, zero */
+    /* |          */
+    /* |         vdiv        Q, vf0w, vf10w */
+    /* |      */
+    /* |     l_002CC78C: */
+    /* |         lqc2        vf4,    0(%4) */
+    /* |         lqc2        vf5, 0x10(%4) */
+    /* |         lqc2        vf6, 0x20(%4) */
+    /* |          */
+    /* |         vmtir       vi3, vf4w */
+    /* |      */
+    /* |         vadda.z     ACC, vf6, vf11 */
+    /* |         vmaddx.z    vf7, vf6, vf11x */
+    /* |          */
+    /* |         vsub.xy     vf7, vf6, vf13 */
+    /* |          */
+    /* |         vclipw.xyz  vf7, vf13w         */
+    /* |          */
+    /* |         vadda.z     ACC, vf0, vf10 */
+    /* |         vmaddx.z    vf6, vf4, vf10x */
+    /* |          */
+    /* |         vmax.z      vf6, vf6, vf0 */
+    /* |          */
+    /* |         vftoi0.xyzw vf5, vf5 */
+    /* |          */
+    /* |         vminiy.z    vf6, vf6, vf12y */
+    /* |          */
+    /* |         vaddz.w     vf9, vf9, vf6z */
+    /* |          */
+    /* |         vftoi4.xyzw vf6, vf6 */
+    /* |          */
+    /* |         vmtir       vi5, vf6w */
+    /* |      */
+    /* |         cfc2        v1, vi18 */
+    /* |      */
+    /* |         and         v1, v1, a0 */
+    /* |      */
+    /* |         beqz        v1, l_002CC7E0 */
+    /* |         nop */
+    /* |      */
+    /* |         vior        vi3, vi3, vi2 */
+    /* |          */
+    /* |     l_002CC7E0: */
+    /* |         vior        vi5, vi5, vi3 */
+    /* |         viand       vi4, vi4, vi5 */
+    /* |      */
+    /* |         vmfir.w     vf6, vi5 */
+    /* |          */
+    /* |         sqc2        vf4,    0(%5) */
+    /* |         sqc2        vf5, 0x10(%5) */
+    /* |         sqc2        vf6, 0x20(%5)  */
+    /* |          */
+    /* |         addi        v0, v0, -1 */
+    /* |         addiu       %5, %5, 48 */
+    /* |          */
+    /* |         bnez        v0, l_002CC78C */
+    /* |          */
+    /* |         addiu       %4, %4, 48 */
+    /* |          */
+    /* |         cfc2        v1, vi4 */
+    /* |          */
+    /* |         bnez        v0, l_002CC82C */
+    /* |         nop */
+    /* |      */
+    /* |         vmulq.w     vf4, vf9, Q */
+    /* |          */
+    /* |         sqc2        vf4, 0(%5)  */
+    /* |     .set reorder */
+    /* |     " : : "r"(clip_vec), "r"(near_far_vec), "r"(zclip_ab_vec), "r"(zbuff_ab_vec), "r"(dp), "r"(p), "r"(num) :  */
+    /* |     ); */
+        ee_gpr r1 = {{0}}, r2 = {{0}}, r3 = {{0}}, r4 = {{0}};
+        __typeof__((zbuff_ab_vec) + 0) op0 = (zbuff_ab_vec);
+        __typeof__((clip_vec) + 0) op1 = (clip_vec);
+        __typeof__((near_far_vec) + 0) op2 = (near_far_vec);
+        __typeof__((zclip_ab_vec) + 0) op3 = (zclip_ab_vec);
+        __typeof__((num) + 0) op4 = (num);
+        __typeof__((dp) + 0) op5 = (dp);
+        __typeof__((p) + 0) op6 = (p);
+        vu_lqc2(10, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op0)) + (0)));
+        vu_lqc2(13, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op1)) + (0)));
+        vu_lqc2(12, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op2)) + (0)));
+        vu_lqc2(11, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op3)) + (0)));
+        vu_itof(VF(10), VF(10), 1, (1.0f / 1.0f));
+        vu_sub(VF(9), VF(9), VF(9), 15);
+        r1.d[0] = EE_SEXT32((uint32_t)((0x3FFFF >> 16)) << 16);
+        r2.d[0] = (0) | (uint64_t)(uint16_t)(0x8000);
+        r4.d[0] = (r1.d[0]) | (uint64_t)(uint16_t)((0x3FFFF & 0xFFFF));
+        vu_ctc2(18, (uint32_t)(0));
+        vu_ctc2(2, (uint32_t)(r2.d[0]));
+        VI(4) = (int16_t)(VI(0) + (0));
+        r2.d[0] = EE_SEXT32((uint32_t)(EE_CVAR_GET(op4)) + (uint32_t)(0));
+        VQ = vu_div(VF(0)[3], VF(10)[3]);
+        L_Ps2AddPrim3DMod_l_002CC78C:;
+        vu_lqc2(4, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op5)) + (0)));
+        vu_lqc2(5, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op5)) + (0x10)));
+        vu_lqc2(6, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op5)) + (0x20)));
+        VI(3) = (int16_t)ee_fbits(VF(4)[3]);
+        vu_add(VACC, VF(6), VF(11), 2);
+        vu_madd_bc(VF(7), VF(6), VF(11)[0], 2);
+        vu_sub(VF(7), VF(6), VF(13), 12);
+        vu_clip(VF(7), VF(13)[3]);
+        vu_add(VACC, VF(0), VF(10), 2);
+        vu_madd_bc(VF(6), VF(4), VF(10)[0], 2);
+        vu_max(VF(6), VF(6), VF(0), 2);
+        vu_ftoi(VF(5), VF(5), 15, 1.0f);
+        vu_mini_bc(VF(6), VF(6), VF(12)[1], 2);
+        vu_add_bc(VF(9), VF(9), VF(6)[2], 1);
+        vu_ftoi(VF(6), VF(6), 15, 16.0f);
+        VI(5) = (int16_t)ee_fbits(VF(6)[3]);
+        r3.d[0] = (uint64_t)vu_cfc2(18);
+        r3.d[0] = (r3.d[0]) & r4.d[0];
+        if ((int64_t)(r3.d[0]) == 0) goto L_Ps2AddPrim3DMod_l_002CC7E0;
+        VI(3) = (int16_t)(VI(3) | (VI(2)));
+        L_Ps2AddPrim3DMod_l_002CC7E0:;
+        VI(5) = (int16_t)(VI(5) | (VI(3)));
+        VI(4) = (int16_t)(VI(4) & (VI(5)));
+        { float v_ = ee_bitsf((uint32_t)(int32_t)VI(5)); float t_[4] = { v_, v_, v_, v_ }; vu_store(VF(6), t_, 1); }
+        vu_sqc2(4, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op6)) + (0)));
+        vu_sqc2(5, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op6)) + (0x10)));
+        vu_sqc2(6, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op6)) + (0x20)));
+        r2.d[0] = EE_SEXT32((uint32_t)(r2.d[0]) + (uint32_t)(-1));
+        EE_CVAR_SET(op6, EE_SEXT32((uint32_t)(EE_CVAR_GET(op6)) + (uint32_t)(48)));
+        { int c_ = ((int64_t)(r2.d[0]) != 0); EE_CVAR_SET(op5, EE_SEXT32((uint32_t)(EE_CVAR_GET(op5)) + (uint32_t)(48))); if (c_) goto L_Ps2AddPrim3DMod_l_002CC78C; }
+        r3.d[0] = (uint64_t)(uint16_t)VI(4);
+        if ((int64_t)(r2.d[0]) != 0) goto l_002CC82C;
+        vu_mul_bc(VF(4), VF(9), VQ, 1);
+        vu_sqc2(4, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op6)) + (0)));
+    }
 
     SyncPath();
     
@@ -1152,16 +1387,16 @@ void Ps2ClearOT()
     
     Ps2_ot_list_no = 0;
     
-    Ps2_PP = (void*)((int)&Ps2_PBUFF | 0x30000000); 
+    Ps2_PP = (void*)&Ps2_PBUFF; 
     
     for (i = 0; i < 4096; i++) 
     {
-        *(unsigned long*)&Ps2_OT[i][0] = 0;
+        *(u_long*)&Ps2_OT[i][0] = 0;
     } 
 }
 
 // 100% matching!
-void Ps2AddOT(void* p, unsigned int num, float z, unsigned long prim)
+void Ps2AddOT(void* p, unsigned int num, float z, u_long prim)
 {
     unsigned int i; 
     unsigned int size; 
@@ -1174,23 +1409,41 @@ void Ps2AddOT(void* p, unsigned int num, float z, unsigned long prim)
         
         if (((id >= 26510) && (id <= 26614)) || (id == 107170)) 
         { 
-            asm volatile (cvt.w.s f12, f12); 
-            asm volatile (mfc1      otz, f12); 
+            { /* translated from EE asm by agent mips2c; original kept below */
+            /* |             asm volatile (cvt.w.s f12, f12);  */
+            /* |             asm volatile (mfc1      otz, f12);  */
+                float f12 = 0;
+                f12 = z;
+                f12 = ee_bitsf((uint32_t)(int32_t)f12);
+                EE_CVAR_SET(otz, EE_SEXT32(ee_fbits(f12)));
+            }
             
             otz >>= 12;
         } 
         else 
         { 
-            asm volatile (cvt.w.s f12, f12); 
-            asm volatile (mfc1      otz, f12); 
+            { /* translated from EE asm by agent mips2c; original kept below */
+            /* |             asm volatile (cvt.w.s f12, f12);  */
+            /* |             asm volatile (mfc1      otz, f12);  */
+                float f12 = 0;
+                f12 = z;
+                f12 = ee_bitsf((uint32_t)(int32_t)f12);
+                EE_CVAR_SET(otz, EE_SEXT32(ee_fbits(f12)));
+            }
             
             otz >>= 4;
         }
     } 
     else 
     { 
-        asm volatile (cvt.w.s f12, f12); 
-        asm volatile (mfc1      otz, f12); 
+        { /* translated from EE asm by agent mips2c; original kept below */
+        /* |         asm volatile (cvt.w.s f12, f12);  */
+        /* |         asm volatile (mfc1      otz, f12);  */
+            float f12 = 0;
+            f12 = z;
+            f12 = ee_bitsf((uint32_t)(int32_t)f12);
+            EE_CVAR_SET(otz, EE_SEXT32(ee_fbits(f12)));
+        }
         
         otz >>= 4; 
     }
@@ -1234,22 +1487,22 @@ void Ps2AddOT(void* p, unsigned int num, float z, unsigned long prim)
     
     num = (num * 3) + 1; 
     
-    (char*)Ps2_PP += 16; 
+    Ps2_PP = (char*)Ps2_PP + (16);
         
-    *((long*)Ps2_PP)++ = DMAnext | ((*(long*)p) & 0xFFFFFFF); 
-    *((long*)Ps2_PP)++ = 0; 
+    *(ee_long*)Ps2_PP = DMAnext | ((*(ee_long*)p) & 0xFFFFFFF); Ps2_PP = (ee_long*)Ps2_PP + 1;
+    *(ee_long*)Ps2_PP = 0; Ps2_PP = (ee_long*)Ps2_PP + 1;
     
-    *((long*)Ps2_PP)++ = SCE_GIF_SET_TAG(1, 0, 0, 0, 0, 1); 
-    *((long*)Ps2_PP)++ = SCE_GIF_PACKED_AD; 
+    *(ee_long*)Ps2_PP = SCE_GIF_SET_TAG(1, 0, 0, 0, 0, 1); Ps2_PP = (ee_long*)Ps2_PP + 1;
+    *(ee_long*)Ps2_PP = SCE_GIF_PACKED_AD; Ps2_PP = (ee_long*)Ps2_PP + 1;
     
-    *((long*)Ps2_PP)++ = Ps2_gs_save.ALPHA; 
-    *((long*)Ps2_PP)++ = SCE_GS_ALPHA_1; 
+    *(ee_long*)Ps2_PP = Ps2_gs_save.ALPHA; Ps2_PP = (ee_long*)Ps2_PP + 1;
+    *(ee_long*)Ps2_PP = SCE_GS_ALPHA_1; Ps2_PP = (ee_long*)Ps2_PP + 1;
     
-    (char*)p += 48; 
+    p = (char*)p + (48);
     
     for (i = 0; i < num; i++) 
     { 
-        *((u_long128*)Ps2_PP)++ = *((u_long128*)p)++; 
+        *(u_long128*)Ps2_PP = *(u_long128*)p; Ps2_PP = (u_long128*)Ps2_PP + 1; p = (u_long128*)p + 1;
     } 
     
     Ps2_ot_list_no++; 
@@ -1306,7 +1559,7 @@ int Ps2DrawOTagSub(int start_no)
     
     for (i = 0; i < 64; i++) 
     { 
-        *(u_long128*)&ps2_tp_cache[i] = 0; 
+        *(u_long128*)&ps2_tp_cache[i] = (u_long128){0}; 
     } 
     
     for (i = start_no; i < 4096; i++) 
@@ -1315,7 +1568,7 @@ int Ps2DrawOTagSub(int start_no)
         { 
             if (old_p != NULL) 
             { 
-                ((long*)old_p->p)[2] |= ((unsigned long)p->p & 0xFFFFFFF) << 32; 
+                ((ee_long*)old_p->p)[2] |= (u_long)(uintptr_t)p->p << 32; 
             }
             else
             { 
@@ -1369,8 +1622,8 @@ int Ps2DrawOTagSub(int start_no)
                         } 
                         else 
                         { 
-                            ((long*)p->p)[0] = DMAref | 0x4 | ((long)&Ps2_tp_tag[t_no] << 32); 
-                            ((long*)p->p)[1] = 0; 
+                            ((ee_long*)p->p)[0] = DMAref | 0x4 | ((ee_long)&Ps2_tp_tag[t_no] << 32); 
+                            ((ee_long*)p->p)[1] = 0; 
                             
                             goto loop_end; 
                         }
@@ -1420,16 +1673,16 @@ int Ps2DrawOTagSub(int start_no)
                     Ps2_tp_tag[tex_cache_num].CLAMP = SCE_GS_SET_CLAMP_1(SCE_GS_CLAMP, SCE_GS_CLAMP, 255, 0, 255, 0); 
                     Ps2_tp_tag[tex_cache_num].CLAMP_TAG = SCE_GS_CLAMP_1; 
                     
-                    ((long*)p->p)[0] = DMAref | 0x4 | ((long)&Ps2_tp_tag[tex_cache_num] << 32); 
-                    ((long*)p->p)[1] = 0; 
+                    ((ee_long*)p->p)[0] = DMAref | 0x4 | ((ee_long)&Ps2_tp_tag[tex_cache_num] << 32); 
+                    ((ee_long*)p->p)[1] = 0; 
                     
                     tex_cache_num++; 
                 }
             } 
             else 
             { 
-                ((long*)p->p)[0] = DMAref | 0x4 | ((long)&Ps2_tp_tag[t_no] << 32); 
-                ((long*)p->p)[1] = 0; 
+                ((ee_long*)p->p)[0] = DMAref | 0x4 | ((ee_long)&Ps2_tp_tag[t_no] << 32); 
+                ((ee_long*)p->p)[1] = 0; 
             }
             
         loop_end:
@@ -1441,8 +1694,8 @@ int Ps2DrawOTagSub(int start_no)
     if (old_p != NULL) 
     { 
     block:
-        ((long*)old_p->p)[2] = (((long*)(temp = old_p)->p)[2] & 0xFFFFFFF) | 0x70000000; 
-        ((long*)old_p->p)[8] = ((long*)old_p->p)[8] | 0x8000; 
+        ((ee_long*)old_p->p)[2] = (((ee_long*)(temp = old_p)->p)[2] & 0xFFFFFFF) | 0x70000000; 
+        ((ee_long*)old_p->p)[8] = ((ee_long*)old_p->p)[8] | 0x8000; 
         
         printf("TEX %05d:%05d]", 0x3F80 - tex_addr, 0x3FCC - clt_addr); 
         
@@ -1454,7 +1707,7 @@ int Ps2DrawOTagSub(int start_no)
         
         SyncPath();
         
-        loadImage((void*)((int)start_addr & 0xFFFFFF));
+        loadImage(start_addr);
         
         SyncPath(); 
         
@@ -1470,18 +1723,27 @@ int Ps2DrawOTagSub(int start_no)
 // 100% matching!
 unsigned int Ps2BitCount(register unsigned int value)
 {
-    asm volatile
-    {
-        
-        addi  v0, value, -1
-        addi  v1, zero, 0x1F
-            
-        plzcw v0, v0
-            
-        subu  v0, v1, v0
-        
-        nop
-            
+    { /* translated from EE asm by agent mips2c; original kept below */
+    /* |  */
+    /* |     { */
+    /* |          */
+    /* |         addi  v0, value, -1 */
+    /* |         addi  v1, zero, 0x1F */
+    /* |              */
+    /* |         plzcw v0, v0 */
+    /* |              */
+    /* |         subu  v0, v1, v0 */
+    /* |          */
+    /* |         nop */
+    /* |              */
+    /* |     } */
+        ee_gpr r2 = {{0}}, r3 = {{0}};
+        r2.d[0] = EE_SEXT32((uint32_t)(EE_CVAR_GET(value)) + (uint32_t)(-1));
+        r3.d[0] = EE_SEXT32((uint32_t)(0) + (uint32_t)(0x1F));
+        r2 = ee_plzcw(r2);
+        r2.d[0] = EE_SEXT32((uint32_t)(r3.d[0]) - (uint32_t)(r2.d[0]));
+        L8_ret:;
+        return (unsigned int)(uintptr_t)r2.d[0];
     }
 }
 
@@ -1515,6 +1777,7 @@ int Ps2GlobalIndexTexLoad(unsigned int index)
 	{
     	printf("Ps2GlobalIndexTexLoad ERROR!!! %08x\n", index);
 	}
+    return 0; /* fell off the end on the EE */
 }
 
 // 97.17% matching
@@ -1525,7 +1788,7 @@ int Ps2TexLoad(NJS_TEXMEMLIST* addr)
     unsigned int tw;       
     unsigned int th;        
     unsigned int i;          
-    unsigned long* p;        
+    u_long* p;        
     TIM2_PICTUREHEADER_EX* timp; 
     unsigned int cache_flag;  
     unsigned int temp; // not from the debugging symbols
@@ -1574,7 +1837,7 @@ label:
         }
     }
 
-    p = (unsigned long*)WORKBASE;
+    p = (u_long*)WORKBASE;
 
     D2_SyncTag();
 
@@ -1719,6 +1982,7 @@ unsigned int Ps2AlphaIsHalf(unsigned int* cp, unsigned int num)
     {
         ((unsigned char*)cp)[3] = (((unsigned char*)cp)[3] + 1) >> 1;
     }
+    return 0; /* fell off the end on the EE */
 }
 
 // 100% matching!
@@ -1733,6 +1997,7 @@ unsigned int Ps2Alpha4to8(unsigned int* cp, unsigned int num)
         
         ((unsigned char*)cp)[3] = val | (val >> 4);
     }
+    return 0; /* fell off the end on the EE */
 }
 
 // 100% matching!
@@ -2075,8 +2340,8 @@ void Ps2ShadowStart()
 // 100% matching!
 void Ps2ShadowDraw()
 {
-    unsigned long uv0, uv1; 
-    unsigned long xy0, xy1; 
+    u_long uv0, uv1; 
+    u_long xy0, xy1; 
     int iv4[4], iv0[4];       
 
     if ((Ps2_shadow_vec[0] < 1536.0f) || (Ps2_shadow_vec[0] >= 2560.0f))
@@ -2150,8 +2415,8 @@ void Ps2ShadowDraw()
     sceVu0FTOI4Vector(iv4, Ps2_shadow_vec);
     sceVu0FTOI0Vector(iv0, Ps2_shadow_vec);
     
-    xy0 = *(unsigned long*)&iv4[0];
-    xy1 = *(unsigned long*)&iv4[2];
+    xy0 = *(u_long*)&iv4[0];
+    xy1 = *(u_long*)&iv4[2];
 
     uv0 = SCE_GS_SET_UV(((iv0[0] - 1728) * 16) + 8, ((iv0[1] - 1808) * 16) + 8);
     uv1 = SCE_GS_SET_UV(((iv0[2] - 1728) * 16) + 8, ((iv0[3] - 1808) * 16) + 8);
@@ -2218,7 +2483,7 @@ void Ps2ShadowDraw()
 // 100% matching! 
 void Ps2ShadowMain0()
 {
-	static const unsigned long shadow_head[8] = { 0x70000003UL, 0x0UL, 0x1000000000008002UL, 0x0EUL, 0x13A00012CUL, 0x4FUL, 0x8000000029UL, 0x43UL };
+	static const u_long shadow_head[8] = { 0x70000003UL, 0x0UL, 0x1000000000008002UL, 0x0EUL, 0x13A00012CUL, 0x4FUL, 0x8000000029UL, 0x43UL };
 
 	Ps2_shadow_vec[0] =  65536.0f;
 	Ps2_shadow_vec[1] =  65536.0f;
@@ -2232,7 +2497,7 @@ void Ps2ShadowMain0()
 // 100% matching! 
 void Ps2ShadowMain1()
 {
-	static const unsigned long shadow_tail[6] = { 0x70000002UL, 0x0UL, 0x1000000000008001UL, 0x0EUL, 0x80000000A1UL, 0x43UL };
+	static const u_long shadow_tail[6] = { 0x70000002UL, 0x0UL, 0x1000000000008001UL, 0x0EUL, 0x80000000A1UL, 0x43UL };
 
 	loadImage((void*)shadow_tail);
 }
@@ -2289,16 +2554,16 @@ void Ps2Vu1ProgSend(unsigned int prog_no)
 }
 
 // 100% matching!
-void Ps2AddPrim3DExI(unsigned long prim, void* dp, unsigned int num)
+void Ps2AddPrim3DExI(u_long prim, void* dp, unsigned int num)
 {
-    unsigned long* p;                
+    u_long* p;                
     TIM2_PICTUREHEADER_EX* timp;      
     unsigned int clip_flag;        
     unsigned int clut_flag;          
     unsigned int st_clip_flag;      
     float zsum;                    
     float zbuff_ab_vec[4] = { -Ps2_zbuff_b, 0, -Ps2_zbuff_a, *(float*)&num };
-    unsigned long* pp;                
+    u_long* pp;                
     u_long128* p128;             
     int j;                         
     float fz[3][4];                    
@@ -2340,7 +2605,7 @@ void Ps2AddPrim3DExI(unsigned long prim, void* dp, unsigned int num)
         }
     } 
 
-    p = (unsigned long*)WORKBASE;
+    p = (u_long*)WORKBASE;
     
     D2_SyncTag();
 
@@ -2356,101 +2621,162 @@ void Ps2AddPrim3DExI(unsigned long prim, void* dp, unsigned int num)
     *p++ = (SCE_GIF_SET_TAG(0, 1, SCE_GIF_REGLIST, 0, 0, 3) | prim) | num;
     *p++ = GIF_REGLIST(SCE_GS_ST, SCE_GS_RGBAQ, SCE_GS_XYZF2);
     
-    asm volatile
-    ("
-    .set noreorder
-        lqc2        vf10, 0(%3)
-        lqc2        vf13, 0(%0)
-        lqc2        vf12, 0(%1)
-        lqc2        vf11, 0(%2)
-        
-        vitof0.w    vf10, vf10
-        
-        vsub.xyzw   vf9, vf9, vf9
-        
-        li          v0, 0x8000
-        li          %9, 0x3FFFF
-        
-        ctc2        zero, vi18
-        ctc2        v0,   vi2
-    
-        viaddi      vi4, vi0, 0
-    
-        move        v0, %6
-        
-        vdiv        Q, vf0w, vf10w
-    
-    l_002CED6C:
-        lqc2        vf4,    0(%4)
-        lqc2        vf5, 0x10(%4)
-        lqc2        vf6, 0x20(%4)
-        
-        vmtir       vi3, vf4w
-    
-        vadda.z     ACC, vf6, vf11
-        vmaddx.z    vf7, vf6, vf11x
-        
-        vsub.xy     vf7, vf6, vf13
-        
-        vclipw.xyz  vf7, vf13w        
-        
-        vadda.z     ACC, vf0, vf10
-        vmaddx.z    vf6, vf4, vf10x
-        
-        vmax.z      vf6, vf6, vf0
-        
-        vftoi0.xyzw vf5, vf5
-        
-        vminiy.z    vf6, vf6, vf12y
-        
-        vaddz.w     vf9, vf9, vf6z
-        
-        vftoi4.xyzw vf6, vf6
-        
-        vmtir       vi5, vf6w
-    
-        cfc2        %8, vi18
-        
-        and         %7, %8, %9
-        beqz        %7, l_002CEDC0
-        nop
-    
-        vior        vi3, vi3, vi2
-        
-    l_002CEDC0:
-        vior        vi5, vi5, vi3
-        viand       vi4, vi4, vi5
-    
-        vmfir.w     vf6, vi5
-        
-        sqc2        vf4,    0(%5)
-        sqc2        vf5, 0x10(%5)
-        sqc2        vf6, 0x20(%5) 
-        
-        addi        v0, v0, -1
-        addiu       %5, %5, 48
-        
-        bnez        v0, l_002CED6C
-        
-        addiu       %4, %4, 48
-        
-        cfc2        %7, vi4
-        
-        bnez        v0, l_002CF178
-        nop
-    
-        vmulq.w     vf4, vf9, Q
-        
-        sqc2        vf4, 0(%5) 
-    .set reorder
-    " : : "r"(clip_vec), "r"(near_far_vec), "r"(zclip_ab_vec), "r"(zbuff_ab_vec), "r"(dp), "r"(p), "r"(num), "r"(clip_flag), "r"(st_clip_flag), "r"(clut_flag)  : "v0", "memory" 
-    );
+    { /* translated from EE asm by agent mips2c; original kept below */
+    /* |  */
+    /* |     (" */
+    /* |     .set noreorder */
+    /* |         lqc2        vf10, 0(%3) */
+    /* |         lqc2        vf13, 0(%0) */
+    /* |         lqc2        vf12, 0(%1) */
+    /* |         lqc2        vf11, 0(%2) */
+    /* |          */
+    /* |         vitof0.w    vf10, vf10 */
+    /* |          */
+    /* |         vsub.xyzw   vf9, vf9, vf9 */
+    /* |          */
+    /* |         li          v0, 0x8000 */
+    /* |         li          %9, 0x3FFFF */
+    /* |          */
+    /* |         ctc2        zero, vi18 */
+    /* |         ctc2        v0,   vi2 */
+    /* |      */
+    /* |         viaddi      vi4, vi0, 0 */
+    /* |      */
+    /* |         move        v0, %6 */
+    /* |          */
+    /* |         vdiv        Q, vf0w, vf10w */
+    /* |      */
+    /* |     l_002CED6C: */
+    /* |         lqc2        vf4,    0(%4) */
+    /* |         lqc2        vf5, 0x10(%4) */
+    /* |         lqc2        vf6, 0x20(%4) */
+    /* |          */
+    /* |         vmtir       vi3, vf4w */
+    /* |      */
+    /* |         vadda.z     ACC, vf6, vf11 */
+    /* |         vmaddx.z    vf7, vf6, vf11x */
+    /* |          */
+    /* |         vsub.xy     vf7, vf6, vf13 */
+    /* |          */
+    /* |         vclipw.xyz  vf7, vf13w         */
+    /* |          */
+    /* |         vadda.z     ACC, vf0, vf10 */
+    /* |         vmaddx.z    vf6, vf4, vf10x */
+    /* |          */
+    /* |         vmax.z      vf6, vf6, vf0 */
+    /* |          */
+    /* |         vftoi0.xyzw vf5, vf5 */
+    /* |          */
+    /* |         vminiy.z    vf6, vf6, vf12y */
+    /* |          */
+    /* |         vaddz.w     vf9, vf9, vf6z */
+    /* |          */
+    /* |         vftoi4.xyzw vf6, vf6 */
+    /* |          */
+    /* |         vmtir       vi5, vf6w */
+    /* |      */
+    /* |         cfc2        %8, vi18 */
+    /* |          */
+    /* |         and         %7, %8, %9 */
+    /* |         beqz        %7, l_002CEDC0 */
+    /* |         nop */
+    /* |      */
+    /* |         vior        vi3, vi3, vi2 */
+    /* |          */
+    /* |     l_002CEDC0: */
+    /* |         vior        vi5, vi5, vi3 */
+    /* |         viand       vi4, vi4, vi5 */
+    /* |      */
+    /* |         vmfir.w     vf6, vi5 */
+    /* |          */
+    /* |         sqc2        vf4,    0(%5) */
+    /* |         sqc2        vf5, 0x10(%5) */
+    /* |         sqc2        vf6, 0x20(%5)  */
+    /* |          */
+    /* |         addi        v0, v0, -1 */
+    /* |         addiu       %5, %5, 48 */
+    /* |          */
+    /* |         bnez        v0, l_002CED6C */
+    /* |          */
+    /* |         addiu       %4, %4, 48 */
+    /* |          */
+    /* |         cfc2        %7, vi4 */
+    /* |          */
+    /* |         bnez        v0, l_002CF178 */
+    /* |         nop */
+    /* |      */
+    /* |         vmulq.w     vf4, vf9, Q */
+    /* |          */
+    /* |         sqc2        vf4, 0(%5)  */
+    /* |     .set reorder */
+    /* |     " : : "r"(clip_vec), "r"(near_far_vec), "r"(zclip_ab_vec), "r"(zbuff_ab_vec), "r"(dp), "r"(p), "r"(num), "r"(clip_flag), "r"(st_clip_flag), "r"(clut_flag)  : "v0", "memory"  */
+    /* |     ); */
+        ee_gpr r2 = {{0}};
+        __typeof__((zbuff_ab_vec) + 0) op0 = (zbuff_ab_vec);
+        __typeof__((clip_vec) + 0) op1 = (clip_vec);
+        __typeof__((near_far_vec) + 0) op2 = (near_far_vec);
+        __typeof__((zclip_ab_vec) + 0) op3 = (zclip_ab_vec);
+        __typeof__((clut_flag) + 0) op4 = (clut_flag);
+        __typeof__((num) + 0) op5 = (num);
+        __typeof__((dp) + 0) op6 = (dp);
+        __typeof__((st_clip_flag) + 0) op7 = (st_clip_flag);
+        __typeof__((clip_flag) + 0) op8 = (clip_flag);
+        __typeof__((p) + 0) op9 = (p);
+        vu_lqc2(10, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op0)) + (0)));
+        vu_lqc2(13, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op1)) + (0)));
+        vu_lqc2(12, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op2)) + (0)));
+        vu_lqc2(11, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op3)) + (0)));
+        vu_itof(VF(10), VF(10), 1, (1.0f / 1.0f));
+        vu_sub(VF(9), VF(9), VF(9), 15);
+        r2.d[0] = (uint64_t)(int64_t)(int32_t)(0x8000);
+        EE_CVAR_SET(op4, (uint64_t)(int64_t)(int32_t)(0x3FFFF));
+        vu_ctc2(18, (uint32_t)(0));
+        vu_ctc2(2, (uint32_t)(r2.d[0]));
+        VI(4) = (int16_t)(VI(0) + (0));
+        r2.d[0] = EE_CVAR_GET(op5);
+        VQ = vu_div(VF(0)[3], VF(10)[3]);
+        L_Ps2AddPrim3DExI_l_002CED6C:;
+        vu_lqc2(4, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op6)) + (0)));
+        vu_lqc2(5, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op6)) + (0x10)));
+        vu_lqc2(6, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op6)) + (0x20)));
+        VI(3) = (int16_t)ee_fbits(VF(4)[3]);
+        vu_add(VACC, VF(6), VF(11), 2);
+        vu_madd_bc(VF(7), VF(6), VF(11)[0], 2);
+        vu_sub(VF(7), VF(6), VF(13), 12);
+        vu_clip(VF(7), VF(13)[3]);
+        vu_add(VACC, VF(0), VF(10), 2);
+        vu_madd_bc(VF(6), VF(4), VF(10)[0], 2);
+        vu_max(VF(6), VF(6), VF(0), 2);
+        vu_ftoi(VF(5), VF(5), 15, 1.0f);
+        vu_mini_bc(VF(6), VF(6), VF(12)[1], 2);
+        vu_add_bc(VF(9), VF(9), VF(6)[2], 1);
+        vu_ftoi(VF(6), VF(6), 15, 16.0f);
+        VI(5) = (int16_t)ee_fbits(VF(6)[3]);
+        EE_CVAR_SET(op7, (uint64_t)vu_cfc2(18));
+        EE_CVAR_SET(op8, (EE_CVAR_GET(op7)) & EE_CVAR_GET(op4));
+        if ((int64_t)(EE_CVAR_GET(op8)) == 0) goto L_Ps2AddPrim3DExI_l_002CEDC0;
+        VI(3) = (int16_t)(VI(3) | (VI(2)));
+        L_Ps2AddPrim3DExI_l_002CEDC0:;
+        VI(5) = (int16_t)(VI(5) | (VI(3)));
+        VI(4) = (int16_t)(VI(4) & (VI(5)));
+        { float v_ = ee_bitsf((uint32_t)(int32_t)VI(5)); float t_[4] = { v_, v_, v_, v_ }; vu_store(VF(6), t_, 1); }
+        vu_sqc2(4, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op9)) + (0)));
+        vu_sqc2(5, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op9)) + (0x10)));
+        vu_sqc2(6, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op9)) + (0x20)));
+        r2.d[0] = EE_SEXT32((uint32_t)(r2.d[0]) + (uint32_t)(-1));
+        EE_CVAR_SET(op9, EE_SEXT32((uint32_t)(EE_CVAR_GET(op9)) + (uint32_t)(48)));
+        { int c_ = ((int64_t)(r2.d[0]) != 0); EE_CVAR_SET(op6, EE_SEXT32((uint32_t)(EE_CVAR_GET(op6)) + (uint32_t)(48))); if (c_) goto L_Ps2AddPrim3DExI_l_002CED6C; }
+        EE_CVAR_SET(op8, (uint64_t)(uint16_t)VI(4));
+        if ((int64_t)(r2.d[0]) != 0) goto l_002CF178;
+        vu_mul_bc(VF(4), VF(9), VQ, 1);
+        vu_sqc2(4, ((uintptr_t)(uint32_t)(EE_CVAR_GET(op9)) + (0)));
+    }
 
     if ((prim & 0x20000000000000)) 
     {
         if (((ViewType < 3) && (num > 3)) && ((prim & 0x3800000000000) == 0x2000000000000) && (((num * 3) - 6) < 167)) 
         {
-            pp = (unsigned long*)WORKBASE;
+            pp = (u_long*)WORKBASE;
 
             *pp++ = WORKBASE + 12;
             *pp++ = 0;
@@ -2506,7 +2832,7 @@ void Ps2AddPrim3DExI(unsigned long prim, void* dp, unsigned int num)
                         max = fz[2][2];
                     }
                     
-                    Ps2AddOT((void*)0x70000000, 3, max, prim);
+                    Ps2AddOT((void*)WORKBASE, 3, max, prim);
                     break;
                 }
                 case 1:
@@ -2515,7 +2841,7 @@ void Ps2AddPrim3DExI(unsigned long prim, void* dp, unsigned int num)
                     
                     max = zsum = fz[0][0] + fz[0][1] + fz[0][2]; 
                     
-                    Ps2AddOT((void*)0x70000000, 3, 0.33333334f * max, prim);
+                    Ps2AddOT((void*)WORKBASE, 3, 0.33333334f * max, prim);
                     break;
                 }
                 case 2:
@@ -2538,7 +2864,7 @@ void Ps2AddPrim3DExI(unsigned long prim, void* dp, unsigned int num)
                         max = fz[2][2];
                     }
                     
-                    Ps2AddOT((void*)0x70000000, 3, max, prim);
+                    Ps2AddOT((void*)WORKBASE, 3, max, prim);
                     break;
                 }
                 }
@@ -2547,7 +2873,7 @@ void Ps2AddPrim3DExI(unsigned long prim, void* dp, unsigned int num)
             return;
         }
         
-        Ps2AddOT((void*)0x70000000, num, ((float*)p)[(12 * num) + 3], prim);
+        Ps2AddOT((void*)WORKBASE, num, ((float*)p)[(12 * num) + 3], prim);
     }
     else 
     {

@@ -17,16 +17,25 @@
 
 #define MAKE_MAGIC(A, B, C, D) ((A) | (B) << 8 | (C) << 16 | (D) << 24)
 
+#ifdef RECVX_VITA
+/* Vita addresses are >= 0x80000000: signed division would round them down */
+#define ALIGN(x, y) (((((unsigned int)(x)) + (y-1)) / y) * y)
+#else
 #define ALIGN(x, y) (((((int)x) + (y-1)) / y) * y)
+#endif
 #define GET_DATA_PTR(x) ((void*)(((unsigned int)x) + sizeof(HM)))
 #define GET_NEXT_WRK(x) ((int)search_work) + (int)search_work->Use_size + (int)sizeof(HM)
 
 #define	CheckCmdReq(vol, pan, pitch) (0x00|0|((vol)&1)|(((pan)&1)<<1)|(((pitch)&1)<<2))
 #define	CheckCmdChg(vol, pan, pitch) (0x00|8|((vol)&1)|(((pan)&1)<<1)|(((pitch)&1)<<2))
 
+#ifdef RECVX_VITA
+#define SPR_ADDR(_val) (WORKBASE + ((_val) & 0x3FFF))
+#else
 #define SPR_ADDR(_val) ((0x70000000) | _val)
+#endif
 
-#define JOIN_TAGS(_lo, _hi) ((_lo) | ((long)(_hi) << 0x20))
+#define JOIN_TAGS(_lo, _hi) ((_lo) | ((ee_long)(_hi) << 0x20))
 
 #define SCE_UPF_V4_32  (0x0c) /* 0b1100 */
 
@@ -86,7 +95,11 @@
 
 #define MTN_NO_CHECK(epw) ((epw->mtn_no == 2) ? 0 : (epw->mtn_no == 3) ? 1 : 2) 
 
+#ifdef RECVX_VITA
+#define PREFETCH(_v) ((void)0) /* call sites pass a dereferenced qword */
+#else
 #define PREFETCH(_v) asm("pref 0x0,0(%0)": : "r"(_v) : "memory")
+#endif
 
 #define SCE_GIF_PRIM(prim, iip, tme, fge, abe, aa1, fst, ctxt, fix) SCE_GIF_SET_TAG(0, 0, 0, SCE_GS_SET_PRIM(prim, iip, tme, fge, abe, aa1, fst, ctxt, fix), 0, 0)
 

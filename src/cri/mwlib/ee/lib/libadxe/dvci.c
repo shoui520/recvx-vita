@@ -20,7 +20,7 @@ CVFS_IF dvCiGetInterface()
 }
 
 // 100% matching!
-static void dvci_wait(void)
+void dvci_wait(void)
 {
     Sint32 i;
 

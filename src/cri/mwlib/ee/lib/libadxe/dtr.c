@@ -105,7 +105,7 @@ void DTR_ExecHndl(DTR dtr)
             
                 SyncDCache(cks.data, cks.data + (cks.len - 1));
                 
-                dtr->dma.data = (Sint32)cks.data & 0xFFFFFFF;
+                dtr->dma.data = (Sint32)cks.data & EE_PHYS_MASK;
                 
                 dtr->dma.addr = (Sint32)ckd.data;
                 

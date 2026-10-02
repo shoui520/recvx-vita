@@ -49,7 +49,7 @@ int viBufPutTs(ViBuf *f, TimeStamp *ts);
 void voBufIncCount(VoBuf *f);
 void audioDecResume(AudioDec *ad);
 int getFIFOindex(ViBuf *f, void *addr);
-int videoDecPutTs(VideoDec *vd, long pts_val, long dts_val, u_char *start, int len);
+int videoDecPutTs(VideoDec *vd, ee_long pts_val, ee_long dts_val, u_char *start, int len);
 void audioDecBeginPut(AudioDec *ad, u_char **ptr0, int *len0, u_char **ptr1, int *len1);
 void termAll();
 int viBufDelete(ViBuf *f);

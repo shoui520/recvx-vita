@@ -295,7 +295,7 @@ void setImageTag(u_int *tags, void *image)
         *tag++ = SCE_GIF_SET_TAG((mby * 1024) / 16, SCE_GS_TRUE, SCE_GS_FALSE, 0, SCE_GIF_IMAGE, 0); 
         *tag++ = 0;
 
-        *tag++ = (unsigned long)((unsigned int)image & 0xFFFFFF) << 32 | 0x30000000L | ((mby * 1024) / 16);
+        *tag++ = (u_long)((unsigned int)image & 0xFFFFFF) << 32 | 0x30000000L | ((mby * 1024) / 16);
         *tag++ = 0;
 
         image = (unsigned char*)image + (mby * 1024);
@@ -311,8 +311,8 @@ void setImageTag(u_int *tags, void *image)
 // 100% matching! 
 void vbrank_draw() 
 {
-    unsigned long* tag;
-    const unsigned long giftag_eop[2] = { SCE_GIF_SET_TAG(0, 1, 0, 0, 0, 1), 0x000000000000000EL }; 
+    u_long* tag;
+    const u_long giftag_eop[2] = { SCE_GIF_SET_TAG(0, 1, 0, 0, 0, 1), 0x000000000000000EL }; 
     int u, v; // not from the debugging symbols
     int y; // not from the debugging symbols
     int w, h; // not from the debugging symbols
@@ -927,7 +927,7 @@ int getFIFOindex(ViBuf *f, void *addr)
 }
 
 // 100% matching! 
-int videoDecPutTs(VideoDec *vd, long pts_val, long dts_val, u_char *start, int len)
+int videoDecPutTs(VideoDec *vd, ee_long pts_val, ee_long dts_val, u_char *start, int len)
 {
     TimeStamp ts;
 
@@ -1042,23 +1042,23 @@ int GetAllWorkMemory()
     
     memset(ADX_STREAM_BUFFER, 0, 469120);    
 
-    (char*)voBufData = ADX_STREAM_BUFFER;    
+    voBufData = (__typeof__(voBufData))(ADX_STREAM_BUFFER);    
     
-    (char*)readBuf = &ADX_STREAM_BUFFER[450560];    
+    readBuf = (__typeof__(readBuf))(&ADX_STREAM_BUFFER[450560]);    
     
-	(char*)viBufTag = &ADX_STREAM_BUFFER[467008];   
+	viBufTag = (__typeof__(viBufTag))(&ADX_STREAM_BUFFER[467008]);   
     
-	(char*)timeStamp = &ADX_STREAM_BUFFER[467584];   
+	timeStamp = (__typeof__(timeStamp))(&ADX_STREAM_BUFFER[467584]);   
     
-	(unsigned char*)viBufData = Ps2_MOVIE;             
+	viBufData = (__typeof__(viBufData))(Ps2_MOVIE);             
     
 	audioBuff = (unsigned char*)&viBufData[4096];       
     
-	(unsigned char*)videoDecStack = &audioBuff[24576];  
+	videoDecStack = (__typeof__(videoDecStack))(&audioBuff[24576]);  
     
 	mpegWork = (unsigned char*)&videoDecStack[16384];     
     
-	(unsigned char*)voBufTag = &mpegWork[508928];              
+	voBufTag = (__typeof__(voBufTag))(&mpegWork[508928]);              
     
 	printf("mpegWorkAddr      = %x :size %x\n", mpegWork, 508928);
 	printf("voBufDataAddr     = %x :size %x\n", voBufData, 450560);

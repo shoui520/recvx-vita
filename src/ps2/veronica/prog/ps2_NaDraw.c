@@ -3,6 +3,7 @@
 #include "../../../ps2/veronica/prog/ps2_NaTextureFunction.h"
 #include "../../../ps2/veronica/prog/ps2_Vu1Strip.h"
 #include "../../../ps2/veronica/prog/main.h"
+#include "../../../ps2/veronica/prog/ps2_NaMatrix.h"
 
 // 100% matching!
 void    njDrawPolygon( NJS_POLYGON_VTX *polygon, Int count, Int trans )
@@ -361,7 +362,7 @@ void njDrawTextureSub3D(NJS_TEXTURE_VTX* polygon, int count, int flag)
 void njDrawTextureSub3D1P(NJS_TEXTURE_VTX* polygon, int count, int flag)
 {
     unsigned int i;               
-    unsigned long prim;        
+    u_long prim;        
     VU1_STRIP_BUF* vp;          
     static VU1_STRIP_BUF vb[256]; 
     unsigned short temp; // not from DWARF

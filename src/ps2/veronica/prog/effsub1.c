@@ -17,6 +17,7 @@
 #include "../../../ps2/veronica/prog/sdfunc.h"
 #include "../../../ps2/veronica/prog/weapon.h"
 #include "../../../ps2/veronica/prog/main.h"
+#include "../../../ps2/veronica/prog/ps2_texture.h"
 
 // 100% matching!
 void bhEffDmy(O_WRK* op)

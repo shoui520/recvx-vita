@@ -1,3 +1,6 @@
+#ifdef RECVX_VITA
+#include "recvx_platform.h"
+#endif
 #include "../../../ps2/veronica/prog/system.h"
 #include "../../../ps2/veronica/prog/adv.h"
 #include "../../../ps2/veronica/prog/bup_00.h"
@@ -356,6 +359,25 @@ void bhSysCallFirstmovie()
     
     njSetBackColor(0x00000000, 0x00000000, 0x00000000);
     
+#ifdef RECVX_VITA
+    /* boot.txt "newgame": take the title menu's NEW GAME path straight away */
+    static int title_skipped;
+    
+    if (recvx_boot_newgame() && !title_skipped) 
+    {
+        extern ADV_WORK AdvWork;
+        
+        title_skipped = 1;
+        
+        AdvWork.AppMode = 1;
+        AdvWork.FromTitle = 0;
+        
+        sys->gm_mode = 0;
+        sys->ss_flg &= ~0x200;
+        sys->tk_flg = 0x300010;
+        return;
+    }
+#endif
     switch (Adv_BioCvTitle()) 
     {
     case 1:

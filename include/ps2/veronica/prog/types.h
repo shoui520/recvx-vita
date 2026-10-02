@@ -2286,8 +2286,8 @@ typedef struct {
 } StrFile;
 
 typedef struct {
-    long pts;
-    long dts;
+    ee_long pts;
+    ee_long dts;
     int pos;
     int len;
 } TimeStamp;
@@ -2365,8 +2365,8 @@ typedef union {
 #define VIBUF_TS_SIZE (VIBUF_SIZE*2)
 
 typedef struct {
-    __int128 *data;	// data array
-    __int128 *tag;	// tag array
+    u_long128 *data;	// data array
+    u_long128 *tag; 	// tag array
     int n;		// the number of data/tag element in ViBuf
     int dmaStart;	// DMA area start position
     int dmaN;		// DMA area size
@@ -2375,7 +2375,7 @@ typedef struct {
     sceIpuDmaEnv env;	// DMA environment
     int sema;		// semaphore
     int isActive;	// flag to check CSC period
-    long totalBytes;	// total bytes of data which sent to ViBuf
+    ee_long totalBytes;	// total bytes of data which sent to ViBuf
 
     TimeStamp *ts;	// time stamp array
     int n_ts;		// time stamp array size
@@ -2423,7 +2423,13 @@ typedef struct {
 
 #define GS_COORD(v) ((unsigned int)((v) * 16))
 
+#ifdef RECVX_VITA
+/* The EE scratchpad (0x70000000) is a static buffer on the Vita. */
+extern unsigned char recvx_spr[16384];
+#define WORKBASE ((unsigned int)recvx_spr)
+#else
 #define WORKBASE (0x70000000)
+#endif
 
 #define DMAnext             (2<<28)
 #define DMAend  (7<<28)
@@ -2463,13 +2469,25 @@ typedef struct {
 #define DISP_HEIGHT 480
 
 #define UNCACHED_BASE 0x20000000
+#ifdef RECVX_VITA
+#define UNCACHED(x) ((u_int)(x))    /* no uncached mirror of main RAM on the Vita */
+#else
 #define UNCACHED(x) ((u_int)(x)|UNCACHED_BASE)
+#endif
 
 // TODO: include the following define from cpureg.h
 #define	SR_CU0		0x10000000	/* Coprocessor 0 usable */
 
+#ifdef RECVX_VITA
+#define UNCMASK 0xffffffff /* EE segments are plain RAM on the Vita */
+#else
 #define UNCMASK 0x0fffffff
+#endif
+#ifdef RECVX_VITA
+#define UNCBASE 0
+#else
 #define UNCBASE 0x20000000
+#endif
 
 #define PP_NARG(...) \
     PP_NARG_(__VA_ARGS__, PP_RSEQ_N())
@@ -2491,180 +2509,180 @@ typedef struct {
     CAT(GIF_REGLIST_, PP_NARG(__VA_ARGS__))(__VA_ARGS__)
 
 #define GIF_REGLIST_1(a0) \
-    ((long)(a0) << (0 * 4))
+    ((ee_long)(a0) << (0 * 4))
 
 #define GIF_REGLIST_2(a0,a1) \
-    ((long)(a0) << (0 * 4)) | \
-    ((long)(a1) << (1 * 4))
+    ((ee_long)(a0) << (0 * 4)) | \
+    ((ee_long)(a1) << (1 * 4))
 
 #define GIF_REGLIST_3(a0,a1,a2) \
-    ((long)(a0) << (0 * 4)) | \
-    ((long)(a1) << (1 * 4)) | \
-    ((long)(a2) << (2 * 4))
+    ((ee_long)(a0) << (0 * 4)) | \
+    ((ee_long)(a1) << (1 * 4)) | \
+    ((ee_long)(a2) << (2 * 4))
 
 #define GIF_REGLIST_4(a0,a1,a2,a3) \
-    ((long)(a0) << (0 * 4)) | \
-    ((long)(a1) << (1 * 4)) | \
-    ((long)(a2) << (2 * 4)) | \
-    ((long)(a3) << (3 * 4))
+    ((ee_long)(a0) << (0 * 4)) | \
+    ((ee_long)(a1) << (1 * 4)) | \
+    ((ee_long)(a2) << (2 * 4)) | \
+    ((ee_long)(a3) << (3 * 4))
 
 #define GIF_REGLIST_5(a0,a1,a2,a3,a4) \
-    ((long)(a0) << (0 * 4)) | \
-    ((long)(a1) << (1 * 4)) | \
-    ((long)(a2) << (2 * 4)) | \
-    ((long)(a3) << (3 * 4)) | \
-    ((long)(a4) << (4 * 4))
+    ((ee_long)(a0) << (0 * 4)) | \
+    ((ee_long)(a1) << (1 * 4)) | \
+    ((ee_long)(a2) << (2 * 4)) | \
+    ((ee_long)(a3) << (3 * 4)) | \
+    ((ee_long)(a4) << (4 * 4))
 
 #define GIF_REGLIST_6(a0,a1,a2,a3,a4,a5) \
-    ((long)(a0) << (0 * 4)) | \
-    ((long)(a1) << (1 * 4)) | \
-    ((long)(a2) << (2 * 4)) | \
-    ((long)(a3) << (3 * 4)) | \
-    ((long)(a4) << (4 * 4)) | \
-    ((long)(a5) << (5 * 4))
+    ((ee_long)(a0) << (0 * 4)) | \
+    ((ee_long)(a1) << (1 * 4)) | \
+    ((ee_long)(a2) << (2 * 4)) | \
+    ((ee_long)(a3) << (3 * 4)) | \
+    ((ee_long)(a4) << (4 * 4)) | \
+    ((ee_long)(a5) << (5 * 4))
 
 #define GIF_REGLIST_7(a0,a1,a2,a3,a4,a5,a6) \
-    ((long)(a0) << (0 * 4)) | \
-    ((long)(a1) << (1 * 4)) | \
-    ((long)(a2) << (2 * 4)) | \
-    ((long)(a3) << (3 * 4)) | \
-    ((long)(a4) << (4 * 4)) | \
-    ((long)(a5) << (5 * 4)) | \
-    ((long)(a6) << (6 * 4))
+    ((ee_long)(a0) << (0 * 4)) | \
+    ((ee_long)(a1) << (1 * 4)) | \
+    ((ee_long)(a2) << (2 * 4)) | \
+    ((ee_long)(a3) << (3 * 4)) | \
+    ((ee_long)(a4) << (4 * 4)) | \
+    ((ee_long)(a5) << (5 * 4)) | \
+    ((ee_long)(a6) << (6 * 4))
 
 #define GIF_REGLIST_8(a0,a1,a2,a3,a4,a5,a6,a7) \
-    ((long)(a0)  << (0  * 4)) | \
-    ((long)(a1)  << (1  * 4)) | \
-    ((long)(a2)  << (2  * 4)) | \
-    ((long)(a3)  << (3  * 4)) | \
-    ((long)(a4)  << (4  * 4)) | \
-    ((long)(a5)  << (5  * 4)) | \
-    ((long)(a6)  << (6  * 4)) | \
-    ((long)(a7)  << (7  * 4))
+    ((ee_long)(a0)  << (0  * 4)) | \
+    ((ee_long)(a1)  << (1  * 4)) | \
+    ((ee_long)(a2)  << (2  * 4)) | \
+    ((ee_long)(a3)  << (3  * 4)) | \
+    ((ee_long)(a4)  << (4  * 4)) | \
+    ((ee_long)(a5)  << (5  * 4)) | \
+    ((ee_long)(a6)  << (6  * 4)) | \
+    ((ee_long)(a7)  << (7  * 4))
 
 #define GIF_REGLIST_9(a0,a1,a2,a3,a4,a5,a6,a7, \
                  a8) \
-    ((long)(a0)  << (0  * 4)) | \
-    ((long)(a1)  << (1  * 4)) | \
-    ((long)(a2)  << (2  * 4)) | \
-    ((long)(a3)  << (3  * 4)) | \
-    ((long)(a4)  << (4  * 4)) | \
-    ((long)(a5)  << (5  * 4)) | \
-    ((long)(a6)  << (6  * 4)) | \
-    ((long)(a7)  << (7  * 4)) | \
-    ((long)(a8)  << (8  * 4))
+    ((ee_long)(a0)  << (0  * 4)) | \
+    ((ee_long)(a1)  << (1  * 4)) | \
+    ((ee_long)(a2)  << (2  * 4)) | \
+    ((ee_long)(a3)  << (3  * 4)) | \
+    ((ee_long)(a4)  << (4  * 4)) | \
+    ((ee_long)(a5)  << (5  * 4)) | \
+    ((ee_long)(a6)  << (6  * 4)) | \
+    ((ee_long)(a7)  << (7  * 4)) | \
+    ((ee_long)(a8)  << (8  * 4))
 
 #define GIF_REGLIST_10(a0,a1,a2,a3,a4,a5,a6,a7, \
                  a8,a9) \
-    ((long)(a0)  << (0  * 4)) | \
-    ((long)(a1)  << (1  * 4)) | \
-    ((long)(a2)  << (2  * 4)) | \
-    ((long)(a3)  << (3  * 4)) | \
-    ((long)(a4)  << (4  * 4)) | \
-    ((long)(a5)  << (5  * 4)) | \
-    ((long)(a6)  << (6  * 4)) | \
-    ((long)(a7)  << (7  * 4)) | \
-    ((long)(a8)  << (8  * 4)) | \
-    ((long)(a9)  << (9  * 4))
+    ((ee_long)(a0)  << (0  * 4)) | \
+    ((ee_long)(a1)  << (1  * 4)) | \
+    ((ee_long)(a2)  << (2  * 4)) | \
+    ((ee_long)(a3)  << (3  * 4)) | \
+    ((ee_long)(a4)  << (4  * 4)) | \
+    ((ee_long)(a5)  << (5  * 4)) | \
+    ((ee_long)(a6)  << (6  * 4)) | \
+    ((ee_long)(a7)  << (7  * 4)) | \
+    ((ee_long)(a8)  << (8  * 4)) | \
+    ((ee_long)(a9)  << (9  * 4))
 
 #define GIF_REGLIST_11(a0,a1,a2,a3,a4,a5,a6,a7, \
                  a8,a9,a10) \
-    ((long)(a0)  << (0  * 4)) | \
-    ((long)(a1)  << (1  * 4)) | \
-    ((long)(a2)  << (2  * 4)) | \
-    ((long)(a3)  << (3  * 4)) | \
-    ((long)(a4)  << (4  * 4)) | \
-    ((long)(a5)  << (5  * 4)) | \
-    ((long)(a6)  << (6  * 4)) | \
-    ((long)(a7)  << (7  * 4)) | \
-    ((long)(a8)  << (8  * 4)) | \
-    ((long)(a9)  << (9  * 4)) | \
-    ((long)(a10) << (10 * 4))
+    ((ee_long)(a0)  << (0  * 4)) | \
+    ((ee_long)(a1)  << (1  * 4)) | \
+    ((ee_long)(a2)  << (2  * 4)) | \
+    ((ee_long)(a3)  << (3  * 4)) | \
+    ((ee_long)(a4)  << (4  * 4)) | \
+    ((ee_long)(a5)  << (5  * 4)) | \
+    ((ee_long)(a6)  << (6  * 4)) | \
+    ((ee_long)(a7)  << (7  * 4)) | \
+    ((ee_long)(a8)  << (8  * 4)) | \
+    ((ee_long)(a9)  << (9  * 4)) | \
+    ((ee_long)(a10) << (10 * 4))
 
 #define GIF_REGLIST_12(a0,a1,a2,a3,a4,a5,a6,a7, \
                  a8,a9,a10,a11) \
-    ((long)(a0)  << (0  * 4)) | \
-    ((long)(a1)  << (1  * 4)) | \
-    ((long)(a2)  << (2  * 4)) | \
-    ((long)(a3)  << (3  * 4)) | \
-    ((long)(a4)  << (4  * 4)) | \
-    ((long)(a5)  << (5  * 4)) | \
-    ((long)(a6)  << (6  * 4)) | \
-    ((long)(a7)  << (7  * 4)) | \
-    ((long)(a8)  << (8  * 4)) | \
-    ((long)(a9)  << (9  * 4)) | \
-    ((long)(a10) << (10 * 4)) | \
-    ((long)(a11) << (11 * 4))
+    ((ee_long)(a0)  << (0  * 4)) | \
+    ((ee_long)(a1)  << (1  * 4)) | \
+    ((ee_long)(a2)  << (2  * 4)) | \
+    ((ee_long)(a3)  << (3  * 4)) | \
+    ((ee_long)(a4)  << (4  * 4)) | \
+    ((ee_long)(a5)  << (5  * 4)) | \
+    ((ee_long)(a6)  << (6  * 4)) | \
+    ((ee_long)(a7)  << (7  * 4)) | \
+    ((ee_long)(a8)  << (8  * 4)) | \
+    ((ee_long)(a9)  << (9  * 4)) | \
+    ((ee_long)(a10) << (10 * 4)) | \
+    ((ee_long)(a11) << (11 * 4))
 
 #define GIF_REGLIST_13(a0,a1,a2,a3,a4,a5,a6,a7, \
                  a8,a9,a10,a11,a12) \
-    ((long)(a0)  << (0  * 4)) | \
-    ((long)(a1)  << (1  * 4)) | \
-    ((long)(a2)  << (2  * 4)) | \
-    ((long)(a3)  << (3  * 4)) | \
-    ((long)(a4)  << (4  * 4)) | \
-    ((long)(a5)  << (5  * 4)) | \
-    ((long)(a6)  << (6  * 4)) | \
-    ((long)(a7)  << (7  * 4)) | \
-    ((long)(a8)  << (8  * 4)) | \
-    ((long)(a9)  << (9  * 4)) | \
-    ((long)(a10) << (10 * 4)) | \
-    ((long)(a11) << (11 * 4)) | \
-    ((long)(a12) << (12 * 4))
+    ((ee_long)(a0)  << (0  * 4)) | \
+    ((ee_long)(a1)  << (1  * 4)) | \
+    ((ee_long)(a2)  << (2  * 4)) | \
+    ((ee_long)(a3)  << (3  * 4)) | \
+    ((ee_long)(a4)  << (4  * 4)) | \
+    ((ee_long)(a5)  << (5  * 4)) | \
+    ((ee_long)(a6)  << (6  * 4)) | \
+    ((ee_long)(a7)  << (7  * 4)) | \
+    ((ee_long)(a8)  << (8  * 4)) | \
+    ((ee_long)(a9)  << (9  * 4)) | \
+    ((ee_long)(a10) << (10 * 4)) | \
+    ((ee_long)(a11) << (11 * 4)) | \
+    ((ee_long)(a12) << (12 * 4))
 
 #define GIF_REGLIST_14(a0,a1,a2,a3,a4,a5,a6,a7, \
                  a8,a9,a10,a11,a12,a13) \
-    ((long)(a0)  << (0  * 4)) | \
-    ((long)(a1)  << (1  * 4)) | \
-    ((long)(a2)  << (2  * 4)) | \
-    ((long)(a3)  << (3  * 4)) | \
-    ((long)(a4)  << (4  * 4)) | \
-    ((long)(a5)  << (5  * 4)) | \
-    ((long)(a6)  << (6  * 4)) | \
-    ((long)(a7)  << (7  * 4)) | \
-    ((long)(a8)  << (8  * 4)) | \
-    ((long)(a9)  << (9  * 4)) | \
-    ((long)(a10) << (10 * 4)) | \
-    ((long)(a11) << (11 * 4)) | \
-    ((long)(a12) << (12 * 4)) | \
-    ((long)(a13) << (13 * 4))
+    ((ee_long)(a0)  << (0  * 4)) | \
+    ((ee_long)(a1)  << (1  * 4)) | \
+    ((ee_long)(a2)  << (2  * 4)) | \
+    ((ee_long)(a3)  << (3  * 4)) | \
+    ((ee_long)(a4)  << (4  * 4)) | \
+    ((ee_long)(a5)  << (5  * 4)) | \
+    ((ee_long)(a6)  << (6  * 4)) | \
+    ((ee_long)(a7)  << (7  * 4)) | \
+    ((ee_long)(a8)  << (8  * 4)) | \
+    ((ee_long)(a9)  << (9  * 4)) | \
+    ((ee_long)(a10) << (10 * 4)) | \
+    ((ee_long)(a11) << (11 * 4)) | \
+    ((ee_long)(a12) << (12 * 4)) | \
+    ((ee_long)(a13) << (13 * 4))
 
 #define GIF_REGLIST_15(a0,a1,a2,a3,a4,a5,a6,a7, \
                  a8,a9,a10,a11,a12,a13,a14) \
-    ((long)(a0)  << (0  * 4)) | \
-    ((long)(a1)  << (1  * 4)) | \
-    ((long)(a2)  << (2  * 4)) | \
-    ((long)(a3)  << (3  * 4)) | \
-    ((long)(a4)  << (4  * 4)) | \
-    ((long)(a5)  << (5  * 4)) | \
-    ((long)(a6)  << (6  * 4)) | \
-    ((long)(a7)  << (7  * 4)) | \
-    ((long)(a8)  << (8  * 4)) | \
-    ((long)(a9)  << (9  * 4)) | \
-    ((long)(a10) << (10 * 4)) | \
-    ((long)(a11) << (11 * 4)) | \
-    ((long)(a12) << (12 * 4)) | \
-    ((long)(a13) << (13 * 4)) | \
-    ((long)(a14) << (14 * 4))
+    ((ee_long)(a0)  << (0  * 4)) | \
+    ((ee_long)(a1)  << (1  * 4)) | \
+    ((ee_long)(a2)  << (2  * 4)) | \
+    ((ee_long)(a3)  << (3  * 4)) | \
+    ((ee_long)(a4)  << (4  * 4)) | \
+    ((ee_long)(a5)  << (5  * 4)) | \
+    ((ee_long)(a6)  << (6  * 4)) | \
+    ((ee_long)(a7)  << (7  * 4)) | \
+    ((ee_long)(a8)  << (8  * 4)) | \
+    ((ee_long)(a9)  << (9  * 4)) | \
+    ((ee_long)(a10) << (10 * 4)) | \
+    ((ee_long)(a11) << (11 * 4)) | \
+    ((ee_long)(a12) << (12 * 4)) | \
+    ((ee_long)(a13) << (13 * 4)) | \
+    ((ee_long)(a14) << (14 * 4))
 
 #define GIF_REGLIST_16(a0,a1,a2,a3,a4,a5,a6,a7, \
                  a8,a9,a10,a11,a12,a13,a14,a15) \
-    ((long)(a0)  << (0  * 4)) | \
-    ((long)(a1)  << (1  * 4)) | \
-    ((long)(a2)  << (2  * 4)) | \
-    ((long)(a3)  << (3  * 4)) | \
-    ((long)(a4)  << (4  * 4)) | \
-    ((long)(a5)  << (5  * 4)) | \
-    ((long)(a6)  << (6  * 4)) | \
-    ((long)(a7)  << (7  * 4)) | \
-    ((long)(a8)  << (8  * 4)) | \
-    ((long)(a9)  << (9  * 4)) | \
-    ((long)(a10) << (10 * 4)) | \
-    ((long)(a11) << (11 * 4)) | \
-    ((long)(a12) << (12 * 4)) | \
-    ((long)(a13) << (13 * 4)) | \
-    ((long)(a14) << (14 * 4)) | \
-    ((long)(a15) << (15 * 4))
+    ((ee_long)(a0)  << (0  * 4)) | \
+    ((ee_long)(a1)  << (1  * 4)) | \
+    ((ee_long)(a2)  << (2  * 4)) | \
+    ((ee_long)(a3)  << (3  * 4)) | \
+    ((ee_long)(a4)  << (4  * 4)) | \
+    ((ee_long)(a5)  << (5  * 4)) | \
+    ((ee_long)(a6)  << (6  * 4)) | \
+    ((ee_long)(a7)  << (7  * 4)) | \
+    ((ee_long)(a8)  << (8  * 4)) | \
+    ((ee_long)(a9)  << (9  * 4)) | \
+    ((ee_long)(a10) << (10 * 4)) | \
+    ((ee_long)(a11) << (11 * 4)) | \
+    ((ee_long)(a12) << (12 * 4)) | \
+    ((ee_long)(a13) << (13 * 4)) | \
+    ((ee_long)(a14) << (14 * 4)) | \
+    ((ee_long)(a15) << (15 * 4))
 
 typedef	void (*AlarmCallBack)(int, unsigned short, void*);
 

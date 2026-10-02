@@ -1,6 +1,9 @@
 #include "../../../ps2/veronica/prog/en20.h"
 #include "../../../ps2/veronica/prog/eneset.h"
 #include "../../../ps2/veronica/prog/subpl.h"
+#include "../../../ps2/veronica/prog/pwksub.h"
+#include "../../../ps2/veronica/prog/MdlPut.h"
+#include "../../../ps2/veronica/prog/Motion.h"
 
 // ENEMY: Ant B 
 

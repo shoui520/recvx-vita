@@ -8,6 +8,7 @@
 #include "../../../ps2/veronica/prog/pwksub.h"
 #include "../../../ps2/veronica/prog/sdfunc.h"
 #include "../../../ps2/veronica/prog/weapon.h"
+#include "../../../ps2/veronica/prog/sub1.h"
 
 // 100% matching!
 void bhCPM2_act_scp()
